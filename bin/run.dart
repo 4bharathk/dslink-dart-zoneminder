@@ -8,10 +8,14 @@ Future main(List<String> args) async {
 
   link = new LinkProvider(args, 'ZoneMinder-',
       command: 'run', profiles: {
-        GetMonitors.isType: (String path) => new GetMonitors(path, link)
+        GetMonitors.isType: (String path) => new GetMonitors(path, link),
+        ClearMonitors.isType: (String path) => new ClearMonitors(path, link),
+        MonitorNode.isType: (String path) => new MonitorNode(path),
+        MonitorValue.isType: (String path) => new MonitorValue(path)
       }, autoInitialize: false);
 
   link.init();
   link.addNode('/${GetMonitors.pathName}', GetMonitors.definition());
+  link.addNode('/${ClearMonitors.pathName}', ClearMonitors.definition());
   await link.connect();
 }

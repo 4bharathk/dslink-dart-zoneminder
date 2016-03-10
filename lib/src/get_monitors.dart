@@ -30,11 +30,8 @@ class GetMonitors extends SimpleNode {
       };
 
   final LinkProvider _link;
-  final ZoneMinderApi _api;
 
-  GetMonitors(String path, this._link)
-      : super(path),
-        _api = new ZoneMinderApi();
+  GetMonitors(String path, this._link) : super(path);
 
   @override
   Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {
@@ -47,13 +44,15 @@ class GetMonitors extends SimpleNode {
       return ret;
     }
 
-    _api.instanceUrl = instanceUrl;
+    apiInstance.instanceUrl = instanceUrl;
 
-    var monitors = await _api.fetchAllMonitors();
+    var monitors = await apiInstance.fetchAllMonitors();
 
     for (var monitor in monitors) {
-      var name = NodeNamer.createName(monitor.name);
-      provider.addNode('/$name', MonitorNode.definition(monitor));
+      monitor.instanceUrl = instanceUrl;
+      var name = NodeNamer.createName(monitor.id);
+      var node = provider.addNode('/$name', MonitorNode.definition(monitor));
+      node.displayName = monitor.name;
     }
 
     _link.save();

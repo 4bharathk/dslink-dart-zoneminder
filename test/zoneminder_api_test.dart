@@ -3,6 +3,7 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:dslink_zoneminder/zoneminder_api.dart';
 import 'dart:io';
+import 'dart:math';
 
 main() {
   group('getMonitors', () {
@@ -35,4 +36,29 @@ main() {
       expect(monitor2.function, 'Monitor');
     });
   });
+
+  group('update single monitor', () {
+    var api = new ZoneMinderApi();
+    api.instanceUrl = 'http://localhost:32768';
+
+    test('name should be changed after updating it', () async {
+      var monitor = (await api.fetchAllMonitors())[0];
+      String randomName = _randomString(10);
+      monitor.name = randomName;
+
+      await api.updateMonitor(monitor.id, monitor);
+
+      var updatedMonitor = (await api.fetchAllMonitors())[0];
+      expect(updatedMonitor.name, randomName);
+    });
+  });
+}
+
+String _randomString(int length) {
+  var rand = new Random.secure();
+  var codeUnits = new List.generate(length, (index) {
+    return rand.nextInt(33) + 89;
+  });
+
+  return new String.fromCharCodes(codeUnits);
 }

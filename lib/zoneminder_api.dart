@@ -24,6 +24,12 @@ class ZoneMinderApi {
 
     return monitors;
   }
+
+  Future<Null> updateMonitor(String monitorId, Monitor newValue) async {
+    var url = '$instanceUrl$apiBaseUrl/monitors/$monitorId.json';
+    var encoded = newValue.toJson();
+    await client.put(url, body: encoded);
+  }
 }
 
 class Monitor {
@@ -32,6 +38,8 @@ class Monitor {
   String serverId;
   String type;
   String function;
+
+  String instanceUrl;
   // TODO: Rest
 
   Monitor.fromMap(Map m) {
@@ -41,4 +49,41 @@ class Monitor {
     type = m['Type'];
     function = m['Function'];
   }
+
+  factory Monitor.clone(Monitor monitor) {
+    return new Monitor.fromMap(JSON.decode(JSON.encode(monitor)));
+  }
+
+  Map toJson() {
+    var json = <String, dynamic>{
+      'Id': id,
+      'Name': name,
+      'ServerId': serverId,
+      'Type': type,
+      'Function': function
+    };
+
+    return json;
+  }
+
+  void update(String fieldName, dynamic newValue) {
+    switch (fieldName) {
+      case 'name':
+        name = newValue;
+        break;
+      case 'serverId':
+        serverId = newValue;
+        break;
+      case 'type':
+        type = newValue;
+        break;
+      case 'function':
+        function = newValue;
+        break;
+      default:
+        throw new Exception('Not yet implemented');
+    }
+  }
 }
+
+ZoneMinderApi apiInstance = new ZoneMinderApi();
