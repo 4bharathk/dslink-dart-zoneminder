@@ -6,11 +6,15 @@ class MonitorValue extends SimpleNode {
   static const String isType = 'monitorValue';
 
   static Map<String, dynamic> definition(dynamic value,
-      {bool writable: true, String type: 'string'}) {
+      {bool writable: true, String type: 'string', String editor: null}) {
     var definition = {r'$is': isType, r'$type': type, '?value': value,};
 
     if (writable) {
       definition[r'$writable'] = 'write';
+    }
+
+    if (editor == 'int') {
+      definition[r'$editor'] = 'int';
     }
 
     return definition;

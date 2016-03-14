@@ -54,11 +54,20 @@ main() {
   });
 }
 
-String _randomString(int length) {
-  var rand = new Random.secure();
-  var codeUnits = new List.generate(length, (index) {
-    return rand.nextInt(33) + 89;
-  });
+const String allowedCharacters =
+    '-_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-  return new String.fromCharCodes(codeUnits);
+String _randomString(int length) {
+  var random = new Random.secure();
+  var allowedCodeUnits = allowedCharacters.codeUnits;
+
+  int max = allowedCodeUnits.length - 1;
+
+  List<int> randomString = [];
+
+  for (int i = 0; i < length; ++i) {
+    randomString.add(allowedCodeUnits.elementAt(random.nextInt(max)));
+  }
+
+  return new String.fromCharCodes(randomString);
 }
