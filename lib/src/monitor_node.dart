@@ -13,10 +13,11 @@ class MonitorNode extends SimpleNode {
           MonitorValue.definition(monitor.instanceUrl, writable: false),
       'Id': MonitorValue.definition(monitor.id, writable: false),
       'Name': MonitorValue.definition(monitor.name),
-      'ServerId': MonitorValue.definition(monitor.serverId),
+      'ServerId': MonitorValue.definition(monitor.serverId, writable: false),
       'Type': MonitorValue.definition(monitor.type,
           type: enumFrom(Monitor.sourceTypes)),
-      'Function': MonitorValue.definition(monitor.function),
+      'Function': MonitorValue.definition(monitor.function,
+          type: enumFrom(Monitor.functions)),
       r'$monitor': MonitorValue.definition(JSON.encode(monitor),
           writable: false, type: 'map')
     };

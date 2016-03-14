@@ -39,17 +39,26 @@ main() {
 
   group('update single monitor', () {
     var api = new ZoneMinderApi();
-    api.instanceUrl = 'http://localhost:32768';
+    api.instanceUrl = 'http://localhost:32769';
 
-    test('name should be changed after updating it', () async {
+    test('fields should be changed after updating it', () async {
       var monitor = (await api.fetchAllMonitors())[0];
-      String randomName = _randomString(10);
-      monitor.name = randomName;
+
+      var name = _randomString(10);
+      monitor.name = name;
+
+      var sourceType = _randomFromList(Monitor.sourceTypes);
+      monitor.type = sourceType;
+
+      var function = _randomFromList(Monitor.functions);
+      monitor.function = function;
 
       await api.updateMonitor(monitor.id, monitor);
 
       var updatedMonitor = (await api.fetchAllMonitors())[0];
-      expect(updatedMonitor.name, randomName);
+      expect(updatedMonitor.name, name);
+      expect(updatedMonitor.type, sourceType);
+      expect(updatedMonitor.function, function);
     });
   });
 }
@@ -70,4 +79,10 @@ String _randomString(int length) {
   }
 
   return new String.fromCharCodes(randomString);
+}
+
+String _randomFromList(List<String> choices) {
+  var indexToPick = new Random.secure().nextInt(choices.length);
+
+  return choices.elementAt(indexToPick);
 }

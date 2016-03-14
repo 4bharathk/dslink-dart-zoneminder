@@ -105,4 +105,13 @@ class Monitor {
     'cURL',
     'Libvlc'
   ];
+
+  static const List<String> functions = const [
+    'None',
+    'Monitor',
+    'Modect',
+    'Record',
+    'Mocord',
+    'Nodect'
+  ];
 }
