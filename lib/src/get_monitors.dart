@@ -9,6 +9,8 @@ import 'monitor_node.dart';
 import 'dart:async';
 
 class GetMonitors extends SimpleNode {
+  GetMonitors(String path, this._link) : super(path);
+
   static const String isType = 'getMonitorsNode';
   static const String pathName = 'Get_Monitors';
 
@@ -31,8 +33,6 @@ class GetMonitors extends SimpleNode {
 
   final LinkProvider _link;
 
-  GetMonitors(String path, this._link) : super(path);
-
   @override
   Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {
     var ret = {'success': false, 'message': ''};
@@ -46,7 +46,15 @@ class GetMonitors extends SimpleNode {
 
     apiInstance.instanceUrl = instanceUrl;
 
-    var monitors = await apiInstance.fetchAllMonitors();
+    List<Monitor> monitors;
+
+    try {
+      monitors = await apiInstance.fetchAllMonitors();
+    } on FormatException {
+      ret['success'] = false;
+      ret['message'] = "Couldn't deserialize content from Zoneminder API.";
+      return ret;
+    }
 
     for (var monitor in monitors) {
       monitor.instanceUrl = instanceUrl;

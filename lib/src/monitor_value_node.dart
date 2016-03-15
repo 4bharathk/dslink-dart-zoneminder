@@ -3,10 +3,12 @@ import 'monitor_node.dart';
 import '../zoneminder_api.dart';
 
 class MonitorValue extends SimpleNode {
+  MonitorValue(String path) : super(path);
+
   static const String isType = 'monitorValue';
 
   static Map<String, dynamic> definition(dynamic value,
-      {bool writable: true, String type: 'string', String editor: null}) {
+      {bool writable: false, String type: 'string', String editor: null}) {
     var definition = {r'$is': isType, r'$type': type, '?value': value,};
 
     if (writable) {
@@ -14,13 +16,12 @@ class MonitorValue extends SimpleNode {
     }
 
     if (editor == 'int') {
+      definition[r'$type'] = 'number';
       definition[r'$editor'] = 'int';
     }
 
     return definition;
   }
-
-  MonitorValue(String path) : super(path);
 
   @override
   Response setValue(Object value, Responder responder, Response response,

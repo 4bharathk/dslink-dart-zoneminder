@@ -3,6 +3,8 @@ import 'package:dslink/dslink.dart';
 import 'monitor_node.dart';
 
 class ClearMonitors extends SimpleNode {
+  ClearMonitors(String path, this._link) : super(path);
+
   static const String isType = 'clearMonitorsNode';
   static const String pathName = 'Clear_Monitors';
 
@@ -17,8 +19,6 @@ class ClearMonitors extends SimpleNode {
       };
 
   final LinkProvider _link;
-
-  ClearMonitors(String path, this._link) : super(path);
 
   @override
   Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {

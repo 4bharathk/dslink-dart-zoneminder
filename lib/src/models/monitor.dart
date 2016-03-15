@@ -83,15 +83,33 @@ class Monitor {
     serverId = m['ServerId'];
     type = m['Type'];
     function = m['Function'];
+    enabled = m['Enabled'];
+    linkedMonitors = m['LinkedMonitors'];
+    triggers = m['Triggers'];
+    device = m['Device'];
+    channel = m['Channel'];
+    format = m['Format'];
+    v4LMultiBuffer = m['V4LMultiBuffer'];
+    v4LCapturesPerFrame = m['V4LCapturesPerFrame'];
+    protocol = m['Protocol'];
   }
 
-  Map toJson() {
+  Map<String, dynamic> toJson() {
     var json = <String, dynamic>{
       'Id': id,
       'Name': name,
       'ServerId': serverId,
       'Type': type,
-      'Function': function
+      'Function': function,
+      'Enabled': enabled,
+      'LinkedMonitors': linkedMonitors,
+      'Triggers': triggers,
+      'Device': device,
+      'Channel': channel,
+      'Format': format,
+      'V4LMultiBuffer': v4LMultiBuffer,
+      'V4LCapturesPerFrame': v4LCapturesPerFrame,
+      'Protocol': protocol,
     };
 
     return json;
@@ -114,4 +132,6 @@ class Monitor {
     'Mocord',
     'Nodect'
   ];
+
+  static const List<String> booleanOneZero = const ['1', '0'];
 }
