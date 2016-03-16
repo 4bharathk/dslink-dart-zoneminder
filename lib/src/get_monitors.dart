@@ -3,6 +3,7 @@ import 'package:dslink/dslink.dart';
 import 'package:quiver/strings.dart';
 
 import '../zoneminder_api.dart';
+import 'uri_parser.dart';
 
 import 'monitor_node.dart';
 
@@ -44,7 +45,7 @@ class GetMonitors extends SimpleNode {
       return ret;
     }
 
-    apiInstance.instanceUrl = instanceUrl;
+    apiInstance.instanceUrl = parseAddress(instanceUrl);
 
     List<Monitor> monitors;
 

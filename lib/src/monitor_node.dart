@@ -39,7 +39,8 @@ class MonitorNode extends SimpleNode {
 
   @override
   void onCreated() {
-    apiInstance.instanceUrl = (getConfig(r'$instanceUrl') as Map)['?value'];
+    var url = (getConfig(r'$instanceUrl') as Map)['?value'];
+    apiInstance.instanceUrl = parseAddress(url);
 
     var monitorJsonNode = getConfig(r'$monitor') as Map;
     var decodedJson = JSON.decode(monitorJsonNode['?value']);

@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 
 import 'package:dslink/dslink.dart';
+import '../zoneminder_api.dart';
+import 'monitor_node.dart';
 
 class MonitorStreamNode extends SimpleNode {
   MonitorStreamNode(String path) : super(path);
@@ -64,14 +65,12 @@ class MonitorStreamNode extends SimpleNode {
 
   @override
   Future onCreated() async {
-    var uri =
-        new Uri.http('localhost:1337', '/zm/cgi-bin/zms', {'monitor': '2'});
-    var client = new http.Client();
-    var streamedResponse = await client.send(new http.Request('GET', uri));
+    var monitorId = (parent as MonitorNode).monitor.id;
+    var monitorStream = await apiInstance.getMonitorStream(monitorId);
 
     List<int> bytesToSend = [];
 
-    await for (List<int> bytes in streamedResponse.stream) {
+    await for (List<int> bytes in monitorStream) {
       if (const ListEquality().equals(bytes, zoneMinderFrameDelimiter)) {
         if (bytesToSend.isEmpty) {
           // I think it can also be the beginning, if so don't send any picture
@@ -83,7 +82,7 @@ class MonitorStreamNode extends SimpleNode {
         }
 
         removeHeader(bytesToSend);
-        ByteData data = createByDataFromBytes(bytesToSend);
+        var data = createByDataFromBytes(bytesToSend);
         updateValue(data);
 
         bytesToSend = []; // Reset the buffer
