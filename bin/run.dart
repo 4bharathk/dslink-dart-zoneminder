@@ -11,7 +11,8 @@ Future main(List<String> args) async {
         GetMonitors.isType: (String path) => new GetMonitors(path, link),
         ClearMonitors.isType: (String path) => new ClearMonitors(path, link),
         MonitorNode.isType: (String path) => new MonitorNode(path),
-        MonitorValue.isType: (String path) => new MonitorValue(path)
+        MonitorValue.isType: (String path) => new MonitorValue(path),
+        MonitorStreamNode.isType: (String path) => new MonitorStreamNode(path)
       }, autoInitialize: false);
 
   link.init();

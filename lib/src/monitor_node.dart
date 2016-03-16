@@ -1,5 +1,6 @@
 import 'package:dslink/dslink.dart';
 import 'monitor_value_node.dart';
+import 'monitor_stream_node.dart';
 import '../zoneminder_api.dart';
 import 'dart:convert';
 
@@ -28,6 +29,7 @@ class MonitorNode extends SimpleNode {
       'Format': MonitorValue.definition(monitor.format),
       'V4LMultiBuffer':
           MonitorValue.definition(monitor.v4LMultiBuffer, type: 'bool'),
+      'Stream': MonitorStreamNode.definition(monitor.id),
       r'$monitor': MonitorValue.definition(JSON.encode(monitor),
           writable: false, type: 'map')
     };
