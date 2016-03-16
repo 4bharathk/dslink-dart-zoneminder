@@ -11,6 +11,28 @@ class MonitorStreamNode extends SimpleNode {
 
   static const String isType = 'monitorStream';
 
+  static const List<int> zoneMinderFrameDelimiter = const [
+    45,
+    45,
+    90,
+    111,
+    110,
+    101,
+    77,
+    105,
+    110,
+    100,
+    101,
+    114,
+    70,
+    114,
+    97,
+    109,
+    101,
+    13,
+    10
+  ];
+
   static Map<String, dynamic> definition(String monitorId) {
     var definition = {r'$is': isType, r'$type': 'dynamic'};
 
@@ -20,7 +42,7 @@ class MonitorStreamNode extends SimpleNode {
   int _offset = -1;
 
   int findHeaderOffsetForCurrentMonitor(List<int> bytes) {
-    var newLineTwice = [13, 10, 13, 10];
+    var newLineTwice = const [13, 10, 13, 10];
     int consecutiveByteCounter = 0;
 
     for (int i = 0; i < bytes.length; ++i) {
@@ -50,28 +72,7 @@ class MonitorStreamNode extends SimpleNode {
     List<int> bytesToSend = [];
 
     await for (List<int> bytes in streamedResponse.stream) {
-      if (const ListEquality().equals(bytes, [
-        45,
-        45,
-        90,
-        111,
-        110,
-        101,
-        77,
-        105,
-        110,
-        100,
-        101,
-        114,
-        70,
-        114,
-        97,
-        109,
-        101,
-        13,
-        10
-      ])) {
-        // This is the "End of frame" marker ^
+      if (const ListEquality().equals(bytes, zoneMinderFrameDelimiter)) {
         if (bytesToSend.isEmpty) {
           // I think it can also be the beginning, if so don't send any picture
           continue;
@@ -81,12 +82,8 @@ class MonitorStreamNode extends SimpleNode {
           _offset = findHeaderOffsetForCurrentMonitor(bytesToSend);
         }
 
-        bytesToSend.removeRange(0, _offset);
-
-        var buffer = new Uint8List.fromList(bytesToSend).buffer;
-
-        var data = new ByteData.view(buffer);
-
+        removeHeader(bytesToSend);
+        ByteData data = createByDataFromBytes(bytesToSend);
         updateValue(data);
 
         bytesToSend = []; // Reset the buffer
@@ -95,5 +92,15 @@ class MonitorStreamNode extends SimpleNode {
 
       bytesToSend.addAll(bytes);
     }
+  }
+
+  ByteData createByDataFromBytes(List<int> bytesToSend) {
+    var buffer = new Uint8List.fromList(bytesToSend).buffer;
+    var data = new ByteData.view(buffer);
+    return data;
+  }
+
+  void removeHeader(List<int> bytes) {
+    bytes.removeRange(0, _offset);
   }
 }
