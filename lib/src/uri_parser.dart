@@ -34,15 +34,3 @@ Uri parseAddress(String address) {
 
   return parsed;
 }
-
-Uri cloneUri(Uri original) {
-  return new Uri(
-      scheme: original.scheme,
-      userInfo: original.userInfo,
-      host: original.host,
-      port: original.port,
-      path: original.path,
-      query: original.query,
-      queryParameters: original.queryParameters,
-      fragment: original.fragment);
-}

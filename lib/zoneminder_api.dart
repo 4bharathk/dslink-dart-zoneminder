@@ -2,7 +2,6 @@ import 'package:http/http.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'src/models/monitor.dart';
-import 'src/uri_parser.dart';
 
 export 'src/models/monitor.dart';
 export 'src/uri_parser.dart';
@@ -49,7 +48,7 @@ class ZoneMinderApi {
   }
 
   Future<ByteStream> getMonitorStream(String monitorId) async {
-    var queryUri = cloneUri(instanceUrl).replace(
+    var queryUri = instanceUrl.replace(
         path: streamPath,
         queryParameters: <String, String>{'monitor': monitorId});
 
