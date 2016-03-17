@@ -82,7 +82,7 @@ class MonitorStreamNode extends SimpleNode {
         }
 
         removeHeader(bytesToSend);
-        var data = createByDataFromBytes(bytesToSend);
+        var data = createByteDataFromBytes(bytesToSend);
         updateValue(data);
 
         bytesToSend = []; // Reset the buffer
@@ -93,7 +93,7 @@ class MonitorStreamNode extends SimpleNode {
     }
   }
 
-  ByteData createByDataFromBytes(List<int> bytesToSend) {
+  ByteData createByteDataFromBytes(List<int> bytesToSend) {
     var buffer = new Uint8List.fromList(bytesToSend).buffer;
     var data = new ByteData.view(buffer);
     return data;
