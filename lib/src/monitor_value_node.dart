@@ -2,10 +2,10 @@ import 'package:dslink/dslink.dart';
 import 'monitor_node.dart';
 import '../zoneminder_api.dart';
 
-class MonitorValue extends SimpleNode {
-  MonitorValue(String path) : super(path);
+class MonitorValueNode extends SimpleNode {
+  MonitorValueNode(String path) : super(path);
 
-  static const String isType = 'monitorValue';
+  static const String isType = 'monitorValueNode';
 
   static Map<String, dynamic> definition(dynamic value,
       {bool writable: false, String type: 'string', String editor: null}) {

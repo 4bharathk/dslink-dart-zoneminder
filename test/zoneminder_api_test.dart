@@ -17,7 +17,7 @@ void main() {
     });
 
     var api = new ZoneMinderApi();
-    api.instanceUrl = 'http://localhost:8080';
+    api.instanceUrl = parseAddress('http://localhost:8080');
     api.client = client;
 
     test('should return correct monitors', () async {
@@ -40,7 +40,7 @@ void main() {
 
   group('update single monitor', () {
     var api = new ZoneMinderApi();
-    api.instanceUrl = 'http://localhost:1337';
+    api.instanceUrl = parseAddress('http://localhost:1337');
 
     test('fields should be changed after updating it', () async {
       var monitor = (await api.fetchAllMonitors())[0];
