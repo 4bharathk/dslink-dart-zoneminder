@@ -1,5 +1,7 @@
 import 'package:quiver/strings.dart';
 
+String enumFrom(List<String> values) => 'enum[${values.join(',')}]';
+
 Uri parseAddress(String address) {
   Uri parsed;
 

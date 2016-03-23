@@ -71,7 +71,6 @@ class Monitor {
   String sequence; //  "1"
 
   String instanceUrl;
-  // TODO: Rest
 
   Map content;
 

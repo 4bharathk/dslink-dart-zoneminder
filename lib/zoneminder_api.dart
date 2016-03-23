@@ -2,9 +2,10 @@ import 'package:http/http.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'src/models/monitor.dart';
+import 'src/models/event.dart';
 
 export 'src/models/monitor.dart';
-export 'src/uri_parser.dart';
+export 'src/utils.dart';
 
 class ZoneMinderApi {
   static const String apiBaseUrl = '/zm/api';
@@ -55,6 +56,22 @@ class ZoneMinderApi {
     var streamedResponse = await client.send(new Request('GET', queryUri));
 
     return streamedResponse.stream;
+  }
+
+  Future<List<Event>> getMonitorEvents(String monitorId) async {
+
+    var url = '$instanceUrl$apiBaseUrl/events/index/MonitorId:$monitorId.json';
+
+    var response = await client.get(url);
+
+    var body = response.body;
+    var decoded = JSON.decode(body);
+    var events = (decoded['events'] as List<Map>).map((Map m) {
+      var event = new Event.fromMap(m['Event']);
+      return event;
+    }).toList();
+
+    return events;
   }
 }
 

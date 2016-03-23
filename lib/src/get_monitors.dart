@@ -3,7 +3,7 @@ import 'package:dslink/dslink.dart';
 import 'package:quiver/strings.dart';
 
 import '../zoneminder_api.dart';
-import 'uri_parser.dart';
+import 'utils.dart';
 
 import 'monitor_node.dart';
 
