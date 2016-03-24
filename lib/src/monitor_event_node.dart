@@ -1,9 +1,9 @@
 import 'package:dslink/dslink.dart';
 import 'models/monitor.dart';
-import 'models/event.dart';
 import 'event_value_node.dart';
 import '../zoneminder_api.dart';
 import 'dart:async';
+import 'event_stream_node.dart';
 
 class MonitorEventsNode extends SimpleNode {
   MonitorEventsNode(String path, this._link) : super(path);
@@ -16,9 +16,12 @@ class MonitorEventsNode extends SimpleNode {
 
   final LinkProvider _link;
 
+  String monitorId;
+
   @override
   Future<Null> onCreated() async {
-    var monitorId = getConfig(r'$monitorId');
+    monitorId = getConfig(r'$monitorId');
+
     var events = await apiInstance.getMonitorEvents(monitorId);
 
     if (events.isEmpty) {
@@ -26,10 +29,11 @@ class MonitorEventsNode extends SimpleNode {
     }
 
     for (var event in events) {
+      var eventNodePath = '$path/event_${event.id}';
       var newNode = _link.addNode(
-              '$path/event_${event.id}', EventValueNode.definition(event))
-          as SimpleNode;
+          eventNodePath, EventValueNode.definition(event)) as SimpleNode;
       newNode.displayName = 'Event ${event.id}';
+      _link.addNode('$eventNodePath/Stream', EventStreamNode.definition(event));
     }
   }
 }

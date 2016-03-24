@@ -59,19 +59,49 @@ class ZoneMinderApi {
   }
 
   Future<List<Event>> getMonitorEvents(String monitorId) async {
-
-    var url = '$instanceUrl$apiBaseUrl/events/index/MonitorId:$monitorId.json';
+    var url = Uri.parse(
+        '$instanceUrl$apiBaseUrl/events/index/MonitorId:$monitorId.json');
 
     var response = await client.get(url);
 
     var body = response.body;
     var decoded = JSON.decode(body);
+
+    var numberOfPages =
+        (decoded['pagination'] as Map<String, dynamic>)['pageCount'];
+
     var events = (decoded['events'] as List<Map>).map((Map m) {
       var event = new Event.fromMap(m['Event']);
       return event;
     }).toList();
 
+    for (int i = 2; i <= numberOfPages; ++i) {
+      var newQueryUri = url.replace(queryParameters: {'page': i.toString()});
+
+      var response = await client.get(newQueryUri);
+
+      var body = response.body;
+      var decoded = JSON.decode(body);
+
+      var moreEvents = (decoded['events'] as List<Map>).map((Map m) {
+        var event = new Event.fromMap(m['Event']);
+        return event;
+      });
+
+      events.addAll(moreEvents);
+    }
+
     return events;
+  }
+
+  Future<ByteStream> getEventStream(String eventId) async {
+    var queryUri = instanceUrl.replace(
+        path: streamPath,
+        queryParameters: <String, String>{'source': 'event', 'event': eventId});
+
+    var streamedResponse = await client.send(new Request('GET', queryUri));
+
+    return streamedResponse.stream;
   }
 }
 

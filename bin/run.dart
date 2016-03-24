@@ -16,7 +16,8 @@ Future main(List<String> args) async {
         MonitorStreamNode.isType: (String path) => new MonitorStreamNode(path),
         MonitorEventsNode.isType: (String path) =>
             new MonitorEventsNode(path, link),
-        EventValueNode.isType: (String path) => new EventValueNode(path)
+        EventValueNode.isType: (String path) => new EventValueNode(path),
+        EventStreamNode.isType: (String path) => new EventStreamNode(path)
       },
       autoInitialize: false);
 
