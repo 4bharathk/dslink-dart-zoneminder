@@ -6,6 +6,7 @@
 build/
 packages
 .packages
+.analysis_options
 
 # Or the files created by dart2js.
 *.dart.js
