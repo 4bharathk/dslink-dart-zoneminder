@@ -10,7 +10,7 @@ class MonitorStreamNode extends SimpleNode {
 
   static const String isType = 'monitorStream';
 
-  static Map<String, dynamic> definition(String monitorId) {
+  static Map<String, dynamic> definition(int monitorId) {
     var definition = {r'$is': isType, r'$type': 'dynamic'};
 
     return definition;
