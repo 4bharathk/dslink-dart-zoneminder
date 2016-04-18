@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:dslink/dslink.dart';
+import 'package:dslink/utils.dart' show logger;
+import 'package:dslink/nodes.dart' show NodeNamer;
 
 import '../../client.dart';
 
@@ -40,7 +42,9 @@ class AddSiteNode extends SimpleNode {
     ]
   };
 
-  AddSiteNode(String path) : super(path);
+  final LinkProvider link;
+
+  AddSiteNode(String path, this.link) : super(path);
 
   @override
   Future<Map<String, dynamic>> onInvoke(Map<String, String> params) async {
@@ -49,6 +53,14 @@ class AddSiteNode extends SimpleNode {
     var ndName = params[_name]?.trim();
     if (ndName == null || ndName.isEmpty) {
       ret[_message] = 'Name cannot be empty';
+      return ret;
+    }
+    ndName = NodeNamer.createName(ndName);
+
+    var pp = parent.path;
+    var tmpNd = provider.getNode('$pp/$ndName');
+    if (tmpNd != null) {
+      ret[_message] = 'A site by that name already exists.';
       return ret;
     }
 
@@ -73,10 +85,42 @@ class AddSiteNode extends SimpleNode {
     ret[_success] = await client.authenticate();
     if(ret[_success]) {
       ret[_message] = 'Success!';
-      // TODO: Add Site node to tree
+      provider.addNode('$pp/$ndName', SiteNode.definition(uri, user, pass));
+      link.save();
     } else {
       ret[_message] = 'Unable to Authenticate to URI';
     }
     return ret;
+  }
+}
+
+class SiteNode extends SimpleNode {
+  static const String isType = 'siteNode';
+  static const String _url = r'$$zm_url';
+  static const String _user = r'$$zm_user';
+  static const String _pass = r'$$zm_pass';
+  static Map<String, dynamic> definition(Uri uri, String user, String pass) => {
+    r'$is' : isType,
+    _url: uri.toString(),
+    _user: user,
+    _pass: pass
+  };
+
+  SiteNode(String path) : super(path);
+  ZmClient client;
+
+  @override
+  void onCreated() {
+    Uri uri;
+    var url = getConfig(_url);
+    var user = getConfig(_user);
+    var pass = getConfig(_pass);
+    try {
+      uri = Uri.parse(url);
+    } catch (e) {
+      logger.warning('Error loading Node: $url', e);
+    }
+
+    client = new ZmClient(uri, user, pass);
   }
 }

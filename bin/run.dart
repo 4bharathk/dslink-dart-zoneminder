@@ -7,11 +7,12 @@ import 'package:dslink_zoneminder/nodes.dart';
 Future main(List<String> args) async {
   LinkProvider link;
 
-  link = new LinkProvider(args, 'ZoneMinder-', profiles: {
-        AddSiteNode.isType: (String path) => new AddSiteNode(path)
+  link = new LinkProvider(args, 'ZoneMinder-', command: 'run', profiles: {
+        AddSiteNode.isType: (String path) => new AddSiteNode(path, link),
+        SiteNode.isType: (String path) => new SiteNode(path)
       }, defaultNodes: {
         'Sites' : {
-          AddSiteNode.pathName: AddSiteNode.definition()
+     //     AddSiteNode.pathName: AddSiteNode.definition()
         }
   });
 
@@ -33,5 +34,6 @@ Future main(List<String> args) async {
 //  link.init();
 //  link.addNode('/${GetMonitors.pathName}', GetMonitors.definition());
 //  link.addNode('/${ClearMonitors.pathName}', ClearMonitors.definition());
+  link.addNode('/Sites/${AddSiteNode.pathName}', AddSiteNode.definition());
   await link.connect();
 }
