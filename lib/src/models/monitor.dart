@@ -1,70 +1,70 @@
 class Monitor {
-  String id;
+  int id;
   String name;
   String serverId;
   String type;
   String function;
-  String enabled;
+  bool enabled;
   String linkedMonitors;
   String triggers;
   String device;
-  String channel; //  "0",
+  int channel; //  "0",
   String format; //  "255",
   bool v4LMultiBuffer; //  false,
-  String v4LCapturesPerFrame; //  "1",
+  int v4LCapturesPerFrame; //  "1",
   String protocol; //  "http",
   String method; //  "simple",
   String host; //  "admin:password@192.168.1.132",
-  String port; //  "80",
+  int port; //  "80",
   String subPath; //  "",
   String path; //  "\/video\/mjpg.cgi",
   String options; //  "",
   String user; //  "",
   String pass; //  "",
-  String width; //  "640",
-  String height; //  "360",
-  String colours; //  "4",
+  int width; //  "640",
+  int height; //  "360",
+  int colours; //  "4",
   String palette; //  "0",
   String orientation; //  "0",
   String deinterlacing; //  "0",
   bool rTSPDescribe; //  false,
-  String brightness; //  "-1",
-  String contrast; //  "-1",
-  String hue; //  "-1",
+  int brightness; //  "-1",
+  int contrast; //  "-1",
+  int hue; //  "-1",
   String colour; //  "-1",
   String eventPrefix; //  "Event-",
   String labelFormat; //  "%N - %d\/%m\/%y %H:%M:%S",
-  String labelX; //  "0",
-  String labelY; //  "0",
-  String labelSize; //  "1",
-  String imageBufferCount; //  "50",
-  String warmupCount; //  "25",
-  String preEventCount; //  "25",
-  String postEventCount; //  "25",
-  String streamReplayBuffer; //  "1000",
-  String alarmFrameCount; //  "1",
-  String sectionLength; //  "600",
-  String frameSkip; //  "0",
-  String motionFrameSkip; //  "0",
-  String analysisFPS; //  "0.00",
-  String analysisUpdateDelay; //  "0",
-  String maxFPS; //  "0.00",
-  String alarmMaxFPS; //  "0.00",
-  String fPSReportInterval; //  "1000",
-  String refBlendPerc; //  "6",
-  String alarmRefBlendPerc; //  "6",
-  String controllable; //  "0",
-  String controlId; //  "0",
+  int labelX; //  "0",
+  int labelY; //  "0",
+  int labelSize; //  "1",
+  int imageBufferCount; //  "50",
+  int warmupCount; //  "25",
+  int preEventCount; //  "25",
+  num postEventCount; //  "25",
+  num streamReplayBuffer; //  "1000",
+  num alarmFrameCount; //  "1",
+  num sectionLength; //  "600",
+  num frameSkip; //  "0",
+  num motionFrameSkip; //  "0",
+  num analysisFPS; //  "0.00",
+  num analysisUpdateDelay; //  "0",
+  num maxFPS; //  "0.00",
+  num alarmMaxFPS; //  "0.00",
+  num fPSReportInterval; //  "1000",
+  num refBlendPerc; //  "6",
+  num alarmRefBlendPerc; //  "6",
+  num controllable; //  "0",
+  num controlId; //  "0",
   dynamic controlDevice; //  null,
   dynamic controlAddress; //  null,
   dynamic autoStopTimeout; //  null,
-  String trackMotion; //  "0",
-  String trackDelay; //  "0",
+  num trackMotion; //  "0",
+  num trackDelay; //  "0",
   String returnLocation; //  "-1",
   String returnDelay; //  "0",
   String defaultView; //  "Events",
-  String defaultRate; //  "100",
-  String defaultScale; //  "100",
+  num defaultRate; //  "100",
+  num defaultScale; //  "100",
   String signalCheckColour; //  "#0000c0",
   String webColour; //  "red",
   bool exif; //  false,
@@ -76,20 +76,20 @@ class Monitor {
 
   Monitor();
 
-  Monitor.fromMap(Map m) {
-    id = m['Id'];
+  Monitor.fromMap(Map<String, String> m) {
+    id = int.parse(m['Id']);
     name = m['Name'];
     serverId = m['ServerId'];
     type = m['Type'];
     function = m['Function'];
-    enabled = m['Enabled'];
+    enabled = m['Enabled'] == "1";
     linkedMonitors = m['LinkedMonitors'];
     triggers = m['Triggers'];
     device = m['Device'];
-    channel = m['Channel'];
+    channel = int.parse(m['Channel']);
     format = m['Format'];
-    v4LMultiBuffer = m['V4LMultiBuffer'];
-    v4LCapturesPerFrame = m['V4LCapturesPerFrame'];
+    v4LMultiBuffer = m['V4LMultiBuffer'] == "true";
+    v4LCapturesPerFrame = int.parse(m['V4LCapturesPerFrame']);
     protocol = m['Protocol'];
   }
 
