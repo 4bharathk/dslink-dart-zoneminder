@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:dslink/utils.dart' show logger;
 
+import 'models.dart';
+
 class ZmClient {
   static Map<String, ZmClient> _cache = <String, ZmClient>{};
 
@@ -15,11 +17,12 @@ class ZmClient {
 
   List<Cookie> _cookies;
 
-  factory ZmClient(String url, int port, String username, String password) =>
-    _cache['$url:$port'] ??= new ZmClient._(url, port, username, password);
+  factory ZmClient(Uri uri, String username, String password) =>
+    _cache['$username@${uri.host}:${uri.port}'] ??=
+        new ZmClient._(uri, username, password);
 
-  ZmClient._(String url, int port, String username, String password) {
-    _rootUri = Uri.parse('$url:$port');
+  ZmClient._(Uri uri, String username, String password) {
+    _rootUri = uri.replace(path: '', query: '', fragment: '');
     _username = username;
     _password = password;
     _client = new HttpClient();
@@ -36,15 +39,55 @@ class ZmClient {
       params['password'] = _password;
     }
 
-    var resp = await get(PathHelper.auth, params);
-    _authenticated = (resp.status == HttpStatus.OK &&
-        !resp.body.contains("currentView = 'login'")) ;
+    var uri = _rootUri.replace(path: PathHelper.auth, queryParameters: params);
+    HttpClientResponse resp;
+    String body;
+    try {
+      var req = await _client.getUrl(uri);
+      resp = await req.close();
+      if (resp.statusCode == HttpStatus.OK) {
+        if (resp.cookies.isNotEmpty) {
+          _cookies = resp.cookies;
+        }
+        body = await UTF8.decodeStream(resp);
+      }
+    } catch (e) {
+      return _authenticated = false;
+    }
+    _authenticated = (resp.statusCode == HttpStatus.OK &&
+        !body.contains("currentView = 'login'"));
+    if (!_authenticated) {
+      logger.warning('Unable to authenticate to server');
+    }
     return _authenticated;
   }
 
-  Future<Map> listMonitors() async {
+  /// Retrieve a list of all connected Monitors on the serve.
+  /// Returns a List of [Monitor]s.
+  Future<List<Monitor>> listMonitors() async {
     var resp = await get(PathHelper.monitors);
-    return JSON.decode(resp.body);
+    if (resp == null) return null;
+    List<Monitor> list;
+    if (resp.body['monitors'] != null && resp.body['monitors'].isNotEmpty) {
+      list = new List<Monitor>();
+      for(var map in resp.body['monitors']) {
+        list.add(new Monitor.fromMap(map['Monitor']));
+      }
+    }
+    return list;
+  }
+
+  /// Retrieves details of a specific monitor identified by the [monitor]
+  /// parameter. Returns a [Future]<[Monitor]> or `null` on error.
+  Future<Monitor> getMonitor(int monitor) async {
+    var resp = await get(PathHelper.monitor(monitor));
+    if (resp == null) return null;
+    Monitor ret;
+    if (resp.body['monitor'] != null && resp.body['monitor'].containsKey('Monitor')) {
+      ret = new Monitor.fromMap(resp.body['monitor']['Monitor']);
+    }
+
+    return ret;
   }
 
   Future<ClientResponse> get(String path, [Map queryParams]) async {
@@ -102,10 +145,7 @@ class ZmClient {
         req.cookies.addAll(_cookies);
       }
       resp = await req.close();
-      if (resp.statusCode == HttpStatus.OK && resp.cookies.isNotEmpty) {
-        _cookies = resp.cookies;
-      }
-      var body = await UTF8.decodeStream(resp);
+      var body = JSON.decode(await UTF8.decodeStream(resp));
       ret = new ClientResponse(resp.statusCode, body);
     } catch (e, s) {
       logger.warning('Unable to complete request:', e, s);
@@ -120,7 +160,7 @@ class ZmClient {
 enum RequestType { get, put, post, delete }
 
 class ClientResponse {
-  String body;
+  Map<String, dynamic> body;
   int status;
   ClientResponse(this.status, this.body);
 }
