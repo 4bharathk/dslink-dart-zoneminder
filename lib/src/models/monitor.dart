@@ -1,7 +1,7 @@
 class Monitor {
   int id;
   String name;
-  String serverId;
+  int serverId;
   String type;
   String function;
   bool enabled;
@@ -79,7 +79,7 @@ class Monitor {
   Monitor.fromMap(Map<String, String> m) {
     id = int.parse(m['Id']);
     name = m['Name'];
-    serverId = m['ServerId'];
+    serverId = int.parse(m['ServerId']);
     type = m['Type'];
     function = m['Function'];
     enabled = m['Enabled'] == "1";
@@ -114,6 +114,7 @@ class Monitor {
     return json;
   }
 
+  String get sourcesEnum => 'enum[${sourceTypes.join(',')}]';
   static const List<String> sourceTypes = const [
     'Local',
     'Remote',
@@ -123,6 +124,7 @@ class Monitor {
     'Libvlc'
   ];
 
+  String get functionsEnum => 'enum[${functions.join(',')}]';
   static const List<String> functions = const [
     'None',
     'Monitor',

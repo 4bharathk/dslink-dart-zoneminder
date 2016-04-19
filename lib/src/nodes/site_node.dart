@@ -5,6 +5,7 @@ import 'package:dslink/utils.dart' show logger;
 import 'package:dslink/nodes.dart' show NodeNamer;
 
 import '../../client.dart';
+import 'monitor_node.dart';
 
 class AddSiteNode extends SimpleNode {
   static const String isType = 'addSite';
@@ -225,6 +226,7 @@ class SiteNode extends SimpleNode {
     _url: uri.toString(),
     _user: user,
     _pass: pass,
+    'monitors': {},
     EditSiteNode.pathName: EditSiteNode.definition(uri, user, pass),
     RemoveSiteNode.pathName: RemoveSiteNode.definition()
   };
@@ -233,7 +235,7 @@ class SiteNode extends SimpleNode {
   ZmClient client;
 
   @override
-  void onCreated() {
+  onCreated() async {
     Uri uri;
     var url = getConfig(_url);
     var user = getConfig(_user);
@@ -245,6 +247,19 @@ class SiteNode extends SimpleNode {
     }
 
     client = new ZmClient(uri, user, pass);
+    var auth = await client.authenticate();
+    if (!auth) {
+      logger.warning('Unable to authenticate');
+      return;
+    }
+
+    var monitors = await client.listMonitors();
+    if (monitors == null) return;
+    for (var monitor in monitors) {
+      var nd = provider.addNode('$path/monitors/${monitor.id}',
+          MonitorNode.definition(monitor));
+      (nd as MonitorNode).monitor = monitor;
+    }
   }
 
   @override

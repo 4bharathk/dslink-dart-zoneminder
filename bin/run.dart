@@ -11,7 +11,9 @@ Future main(List<String> args) async {
         AddSiteNode.isType: (String path) => new AddSiteNode(path, link),
         EditSiteNode.isType: (String path) => new EditSiteNode(path, link),
         RemoveSiteNode.isType: (String path) => new RemoveSiteNode(path, link),
-        SiteNode.isType: (String path) => new SiteNode(path)
+        SiteNode.isType: (String path) => new SiteNode(path),
+        ZmValue.isType: (String path) => new ZmValue(path),
+        MonitorNode.isType: (String path) => new MonitorNode(path)
       }, defaultNodes: {
         'Sites' : {
           AddSiteNode.pathName: AddSiteNode.definition()
