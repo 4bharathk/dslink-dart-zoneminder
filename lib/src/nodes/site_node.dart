@@ -94,6 +94,38 @@ class AddSiteNode extends SimpleNode {
   }
 }
 
+class RemoveSiteNode extends SimpleNode {
+  static const String isType = 'removeSiteNode';
+  static const String pathName = 'Remove_Site';
+
+  static const String _success = 'success';
+  static const String _message = 'message';
+
+  static Map<String, dynamic> definition() => {
+    r'$is' : isType,
+    r'$name' : 'Remove Site',
+    r'$invokable' : 'write',
+    r'$params' : [],
+    r'$columns' : [
+      { 'name' : _success, 'type' : 'bool', 'default' : false },
+      { 'name' : _message, 'type' : 'string', 'default': '' }
+    ]
+  };
+
+  LinkProvider _link;
+
+  RemoveSiteNode(String path, this._link) : super(path);
+
+  @override
+  Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {
+    var ret = { _success: true, _message: 'Success!' };
+
+    provider.removeNode(parent.path);
+
+    return ret;
+  }
+}
+
 class SiteNode extends SimpleNode {
   static const String isType = 'siteNode';
   static const String _url = r'$$zm_url';
@@ -103,7 +135,8 @@ class SiteNode extends SimpleNode {
     r'$is' : isType,
     _url: uri.toString(),
     _user: user,
-    _pass: pass
+    _pass: pass,
+    RemoveSiteNode.pathName: RemoveSiteNode.definition()
   };
 
   SiteNode(String path) : super(path);
@@ -122,5 +155,10 @@ class SiteNode extends SimpleNode {
     }
 
     client = new ZmClient(uri, user, pass);
+  }
+
+  @override
+  void onRemoving() {
+    client?.close();
   }
 }

@@ -110,6 +110,11 @@ class ZmClient {
     return _sendRequest(RequestType.delete, uri);
   }
 
+  void close() {
+    _client.close();
+    _cache.remove('$_username@${_rootUri.host}:${_rootUri.port}');
+  }
+
   Uri _generateUri(String path, Map queryParams) {
     Uri uri;
     if (queryParams == null) {

@@ -9,11 +9,10 @@ Future main(List<String> args) async {
 
   link = new LinkProvider(args, 'ZoneMinder-', command: 'run', profiles: {
         AddSiteNode.isType: (String path) => new AddSiteNode(path, link),
+        RemoveSiteNode.isType: (String path) => new RemoveSiteNode(path, link),
         SiteNode.isType: (String path) => new SiteNode(path)
       }, defaultNodes: {
-        'Sites' : {
-     //     AddSiteNode.pathName: AddSiteNode.definition()
-        }
+        'Sites' : {}
   });
 
 //  link = new LinkProvider(args, 'ZoneMinder-',
