@@ -17,9 +17,16 @@ class ZmClient {
 
   List<Cookie> _cookies;
 
-  factory ZmClient(Uri uri, String username, String password) =>
-    _cache['$username@${uri.host}:${uri.port}'] ??=
-        new ZmClient._(uri, username, password);
+  factory ZmClient(Uri uri, String username, String password) {
+    var tmp = _cache.putIfAbsent('$username@${uri.host}:${uri.port}',
+        () => new ZmClient._(uri, username, password));
+    if (tmp._password != password) {
+      tmp._password = password;
+      tmp._authenticated = false;
+      tmp._cookies = null;
+    }
+    return tmp;
+  }
 
   ZmClient._(Uri uri, String username, String password) {
     _rootUri = uri.replace(path: '', query: '', fragment: '');

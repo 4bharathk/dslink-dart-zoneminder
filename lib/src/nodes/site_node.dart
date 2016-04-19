@@ -94,6 +94,95 @@ class AddSiteNode extends SimpleNode {
   }
 }
 
+class EditSiteNode extends SimpleNode {
+  static const String isType = 'editSiteNode';
+  static const String pathName = 'Edit_Site';
+
+  static const String _url = 'url';
+  static const String _username = 'username';
+  static const String _password = 'password';
+  static const String _success = 'success';
+  static const String _message = 'message';
+
+  static Map<String, dynamic> definition(Uri uri, String username,
+      String password) => {
+    r'$is' : isType,
+    r'$name' : 'Edit Site',
+    r'$invokable' : 'write',
+    r'$params' : [
+      {
+        'name': _url,
+        'type': 'string',
+        'default': uri.toString()
+      },
+      { 'name': _username, 'type': 'string', 'default': username },
+      {
+        'name': _password,
+        'type': 'string',
+        'editor': 'password',
+        'default': password
+      }
+    ],
+    r'$columns' : [
+      { 'name' : _success, 'type' : 'bool', 'default' : false },
+      { 'name' : _message, 'type' : 'string', 'default': '' }
+    ]
+  };
+
+  LinkProvider _link;
+
+  EditSiteNode(String path, this._link) : super(path);
+
+  @override
+  Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {
+    var ret = { _success: false, _message: ''};
+
+    var url = params[_url]?.trim();
+    if (url == null || url.isEmpty) {
+      ret[_message] = 'URL cannot be empty';
+      return ret;
+    }
+    Uri uri;
+    try {
+      uri = Uri.parse(url);
+    } on Exception {
+      ret[_message] = 'Error parsing the provided URL';
+      return ret;
+    }
+    var user = params[_username]?.trim();
+    if (user.isEmpty) user = null;
+    var pass = params[_password]?.trim();
+    if (pass.isEmpty) pass = null;
+
+    var client = new ZmClient(uri, user, pass);
+    ret[_success] = await client.authenticate();
+    if (ret[_success]) {
+      (parent as SiteNode).update(uri, user, pass);
+      configs[r'$params'] = [
+        {
+          'name': _url,
+          'type': 'string',
+          'default': uri.toString()
+        },
+        { 'name': _username, 'type': 'string', 'default': user},
+        {
+          'name': _password,
+          'type': 'string',
+          'editor': 'password',
+          'default': pass
+        }
+      ];
+      ret[_message] = 'Success!';
+      _link.save();
+    } else {
+      ret[_message] = 'Unable to Authenticate to URI';
+    }
+
+    return ret;
+  }
+
+}
+
 class RemoveSiteNode extends SimpleNode {
   static const String isType = 'removeSiteNode';
   static const String pathName = 'Remove_Site';
@@ -121,7 +210,7 @@ class RemoveSiteNode extends SimpleNode {
     var ret = { _success: true, _message: 'Success!' };
 
     provider.removeNode(parent.path);
-
+    _link.save();
     return ret;
   }
 }
@@ -136,6 +225,7 @@ class SiteNode extends SimpleNode {
     _url: uri.toString(),
     _user: user,
     _pass: pass,
+    EditSiteNode.pathName: EditSiteNode.definition(uri, user, pass),
     RemoveSiteNode.pathName: RemoveSiteNode.definition()
   };
 
@@ -161,4 +251,17 @@ class SiteNode extends SimpleNode {
   void onRemoving() {
     client?.close();
   }
+
+  void update(Uri uri, String username, String password) {
+    var tmpClient = new ZmClient(uri, username, password);
+    if (client != tmpClient) {
+      client.close();
+      client = tmpClient;
+    }
+
+    configs[_url] = uri.toString();
+    configs[_user] = username;
+    configs[_pass] = password;
+  }
+
 }

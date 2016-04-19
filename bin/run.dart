@@ -9,11 +9,14 @@ Future main(List<String> args) async {
 
   link = new LinkProvider(args, 'ZoneMinder-', command: 'run', profiles: {
         AddSiteNode.isType: (String path) => new AddSiteNode(path, link),
+        EditSiteNode.isType: (String path) => new EditSiteNode(path, link),
         RemoveSiteNode.isType: (String path) => new RemoveSiteNode(path, link),
         SiteNode.isType: (String path) => new SiteNode(path)
       }, defaultNodes: {
-        'Sites' : {}
-  });
+        'Sites' : {
+          AddSiteNode.pathName: AddSiteNode.definition()
+        }
+  }, autoInitialize: false, encodePrettyJson: true);
 
 //  link = new LinkProvider(args, 'ZoneMinder-',
 //      command: 'run',
@@ -33,6 +36,7 @@ Future main(List<String> args) async {
 //  link.init();
 //  link.addNode('/${GetMonitors.pathName}', GetMonitors.definition());
 //  link.addNode('/${ClearMonitors.pathName}', ClearMonitors.definition());
-  link.addNode('/Sites/${AddSiteNode.pathName}', AddSiteNode.definition());
+//  link.addNode('/Sites/${AddSiteNode.pathName}', AddSiteNode.definition());
+  link.init();
   await link.connect();
 }
