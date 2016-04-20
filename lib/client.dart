@@ -78,7 +78,10 @@ class ZmClient {
     if (resp.body['monitors'] != null && resp.body['monitors'].isNotEmpty) {
       list = new List<Monitor>();
       for(var map in resp.body['monitors']) {
-        list.add(new Monitor.fromMap(map['Monitor']));
+        var mon = new Monitor.fromMap(map['Monitor']);
+        mon.stream = _rootUri.replace(path: PathHelper.monitorStream,
+            queryParameters: {'monitor' : '${mon.id}'});
+        list.add(mon);
       }
     }
     return list;
@@ -92,6 +95,8 @@ class ZmClient {
     Monitor ret;
     if (resp.body['monitor'] != null && resp.body['monitor'].containsKey('Monitor')) {
       ret = new Monitor.fromMap(resp.body['monitor']['Monitor']);
+      ret.stream = _rootUri.replace(path: PathHelper.monitorStream,
+          queryParameters: {'monitor' : ret.id});
     }
 
     return ret;
@@ -180,8 +185,10 @@ class ClientResponse {
 abstract class PathHelper {
   static final String root = '/zm';
   static final String api = '$root/api';
+  static final String cgi = '$root/cgi-bin';
   static final String auth = '$root/index.php';
 
+  static final String monitorStream = '$cgi/zms';
   static final String monitors = '$api/monitors.json';
   static String monitor(int id) => '$api/monitors/$id.json';
 }

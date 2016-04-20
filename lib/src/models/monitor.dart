@@ -71,6 +71,7 @@ class Monitor {
   String sequence; //  "1"
 
   String instanceUrl;
+  Uri stream;
 
   Map content;
 

@@ -19,7 +19,9 @@ class MonitorNode extends ZmNode {
     'channel': ZmValue.definition('Channel', 'number', monitor.channel),
     'format': ZmValue.definition('Format', 'string', monitor.format),
     'v4multibuffer': ZmValue.definition('v4 MultiBuffer', 'bool',
-        monitor.v4LMultiBuffer)
+        monitor.v4LMultiBuffer),
+    'liveUri': ZmValue.definition('Live URL', 'string',
+        monitor.stream.toString())
   };
 
   Monitor monitor;
