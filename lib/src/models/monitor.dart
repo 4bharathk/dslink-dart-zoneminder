@@ -115,7 +115,7 @@ class Monitor {
     return json;
   }
 
-  String get sourcesEnum => 'enum[${sourceTypes.join(',')}]';
+  static String get sourcesEnum => 'enum[${sourceTypes.join(',')}]';
   static const List<String> sourceTypes = const [
     'Local',
     'Remote',
@@ -125,7 +125,7 @@ class Monitor {
     'Libvlc'
   ];
 
-  String get functionsEnum => 'enum[${functions.join(',')}]';
+  static String get functionsEnum => 'enum[${functions.join(',')}]';
   static const List<String> functions = const [
     'None',
     'Monitor',

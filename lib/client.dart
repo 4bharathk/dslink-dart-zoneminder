@@ -29,7 +29,7 @@ class ZmClient {
   }
 
   ZmClient._(Uri uri, String username, String password) {
-    _rootUri = uri.replace(path: '', query: '', fragment: '');
+    _rootUri = uri.replace(path: '', query: '');
     _username = username;
     _password = password;
     _client = new HttpClient();
@@ -96,7 +96,7 @@ class ZmClient {
     if (resp.body['monitor'] != null && resp.body['monitor'].containsKey('Monitor')) {
       ret = new Monitor.fromMap(resp.body['monitor']['Monitor']);
       ret.stream = _rootUri.replace(path: PathHelper.monitorStream,
-          queryParameters: {'monitor' : ret.id});
+          queryParameters: {'monitor' : '${ret.id}'}, fragment: null);
     }
 
     return ret;
