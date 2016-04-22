@@ -15,11 +15,13 @@ Future main(List<String> args) async {
         ZmValue.isType: (String path) => new ZmValue(path),
         MonitorNode.isType: (String path) => new MonitorNode(path),
         VideoNode.isType: (String path) => new VideoNode(path),
-        RefreshMonitorNode.isType: (String path) => new RefreshMonitorNode(path)
+        RefreshMonitorNode.isType: (String path) => new RefreshMonitorNode(path),
+        GetEventsNode.isType: (String path) => new GetEventsNode(path),
+        EventNode.isType: (String path) => new EventNode(path)
       }, defaultNodes: {
-        'Sites' : {
-          AddSiteNode.pathName: AddSiteNode.definition()
-        }
+      'Sites' : {
+        AddSiteNode.pathName: AddSiteNode.definition()
+      }
   }, autoInitialize: false, encodePrettyJson: true);
 
 //  link = new LinkProvider(args, 'ZoneMinder-',

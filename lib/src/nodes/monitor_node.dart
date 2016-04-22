@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'common.dart';
 import 'video_node.dart';
+import 'event_node.dart';
 import '../../models.dart';
 
 class MonitorNode extends ZmNode implements MonitorView {
@@ -28,7 +29,7 @@ class MonitorNode extends ZmNode implements MonitorView {
         monitor.stream.toString()),
     //'liveFeed': VideoNode.definition(VideoNode.liveFeed),
     'events': {
-
+      GetEventsNode.pathName: GetEventsNode.definition()
     },
     RefreshMonitorNode.pathName: RefreshMonitorNode.definition()
   };
