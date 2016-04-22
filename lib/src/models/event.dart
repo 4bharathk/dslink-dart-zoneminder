@@ -1,17 +1,17 @@
 class Event {
-  String id;
-  String monitorId;
+  int id;
+  int monitorId;
   String name;
   String startTime;
   String endTime;
-  String width;
-  String height;
-  String length;
-  String frames;
-  String alarmFrames;
-  String totScore;
-  String avgScore;
-  String maxScore;
+  int width;
+  int height;
+  num length;
+  int frameCount;
+  int alarmFrames;
+  int totScore;
+  num avgScore;
+  num maxScore;
   String archived;
   String videoed;
   String uploaded;
@@ -19,20 +19,22 @@ class Event {
   String messaged;
   String notes;
 
-  Event.fromMap(Map map) {
-    id = map['Id'];
-    monitorId = map['MonitorId'];
+  Uri stream;
+
+  Event.fromMap(Map<String, String> map) {
+    id = int.parse(map['Id']);
+    monitorId = int.parse(map['MonitorId']);
     name = map['Name'];
     startTime = map['StartTime'];
     endTime = map['EndTime'];
-    width = map['Width'];
-    height = map['Height'];
-    length = map['Length'];
-    frames = map['Frames'];
-    alarmFrames = map['AlarmFrames'];
-    totScore = map['TotScore'];
-    avgScore = map['AvgScore'];
-    maxScore = map['MaxScore'];
+    width = int.parse(map['Width']);
+    height = int.parse(map['Height']);
+    length = num.parse(map['Length']);
+    frameCount = int.parse(map['Frames']);
+    alarmFrames = int.parse(map['AlarmFrames']);
+    totScore = int.parse(map['TotScore']);
+    avgScore = num.parse(map['AvgScore']);
+    maxScore = num.parse(map['MaxScore']);
     archived = map['Archived'];
     videoed = map['Videoed'];
     uploaded = map['Uploaded'];
@@ -52,7 +54,7 @@ class Event {
     json['Width'] = width;
     json['Height'] = height;
     json['Length'] = length;
-    json['Frames'] = frames;
+    json['Frames'] = frameCount;
     json['AlarmFrames'] = alarmFrames;
     json['TotScore'] = totScore;
     json['AvgScore'] = avgScore;
@@ -65,5 +67,48 @@ class Event {
     json['Notes'] = notes;
 
     return json;
+  }
+}
+
+class EventDetails extends Event {
+  final Uri rootUri;
+  String basePath;
+  List<Frame> frames;
+
+  EventDetails.fromJson(Map<String, dynamic> map, this.rootUri) :
+        super.fromMap(map['Event']) {
+    basePath = 'zm/${map['Event']['BasePath']}';
+    frames = new List<Frame>();
+    for (var mp in map['Frame']) {
+      frames.add(new Frame.fromJson(mp, rootUri, basePath));
+    }
+  }
+}
+
+class Frame {
+  int id;
+  int eventId;
+  int frameId;
+  String type;
+  String timestamp;
+  num delta;
+  int score;
+  Uri imageUri;
+
+  bool get _isAlarm => type == 'Alarm';
+
+  Frame.fromJson(Map<String, String> map, Uri rootUri, String basePath) {
+    id = int.parse(map['Id']);
+    eventId = int.parse(map['EventId']);
+    frameId = int.parse(map['FrameId']);
+    type = map['Type'];
+    timestamp = map['TimeStamp'];
+    delta = num.parse(map['Delta']);
+    score = int.parse(map['Score']);
+
+    var imgNum = '$frameId'.padLeft(5, '0');
+    var imgType = (_isAlarm ? 'analyse' : 'capture');
+    var imgPath = '${basePath}$imgNum-$imgType.jpg';
+    imageUri = rootUri.replace(path: imgPath);
   }
 }
