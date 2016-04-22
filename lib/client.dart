@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:convert' show UTF8, JSON;
+import 'dart:convert' show UTF8, JSON, BASE64;
+import 'dart:typed_data' show Uint8List, ByteData;
 import 'dart:io';
 
 import 'package:dslink/utils.dart' show logger;
@@ -79,8 +80,8 @@ class ZmClient {
       list = new List<Monitor>();
       for(var map in resp.body['monitors']) {
         var mon = new Monitor.fromMap(map['Monitor']);
-        mon.stream = _rootUri.replace(path: PathHelper.monitorStream,
-            queryParameters: {'monitor' : '${mon.id}'});
+        mon.stream = _rootUri.replace(path: PathHelper.stream,
+            queryParameters: {'monitor' : '${mon.id}', 'user': _username});
         list.add(mon);
       }
     }
@@ -95,11 +96,68 @@ class ZmClient {
     Monitor ret;
     if (resp.body['monitor'] != null && resp.body['monitor'].containsKey('Monitor')) {
       ret = new Monitor.fromMap(resp.body['monitor']['Monitor']);
-      ret.stream = _rootUri.replace(path: PathHelper.monitorStream,
-          queryParameters: {'monitor' : '${ret.id}'}, fragment: null);
+      ret.stream = _rootUri.replace(path: PathHelper.stream,
+          queryParameters: {'monitor' : '${ret.id}', 'user': _username}, fragment: null);
     }
 
     return ret;
+  }
+
+  /// Retrieve the stream of the live video feed.
+  Stream<List<int>> getMonitorFeed(Monitor monitor) async* {
+    var uri = monitor.stream;
+    var req = await _client.getUrl(uri);
+    if (_cookies != null && _cookies.isNotEmpty) {
+      req.cookies.addAll(_cookies);
+    }
+    var resp = await req.close();
+    await for (var data in resp) {
+      yield data;
+      //var dta = new Uint8List.fromList(data);
+      //yield dta.buffer.asByteData();
+    }
+  }
+
+  Future<List<Event>> getEvents(Monitor monitor, [int page]) async {
+    Map<String, String> query;
+    if (page != null) {
+      query = { 'page' : '$page'};
+    }
+    var resp = await get(PathHelper.monitorEvents(monitor), query);
+    if (resp == null) return null;
+    List<Event> list;
+    if (resp.body['events'] != null && resp.body['events'].isNotEmpty) {
+      list = new List<Event>();
+      for (var evnt in resp.body['events']) {
+        var event = new Event.fromMap(evnt['Event']);
+        event.stream = _rootUri.replace(path: PathHelper.stream,
+            queryParameters: {
+              'source': 'event',
+              'event': '${event.id}',
+              'user': _username
+        });
+
+        list.add(event);
+      }
+    }
+
+    var curPage = resp.body['pagination']['page'];
+    var pageCount = resp.body['pagination']['pageCount'];
+    if (curPage < pageCount) {
+      list.addAll(await getEvents(monitor, curPage + 1));
+    }
+
+    return list;
+  }
+
+  Future<EventDetails> getEvent(int id) async {
+    var resp = await get(PathHelper.event(id));
+    if(resp == null) return null;
+    EventDetails evnt;
+    if (resp.body['event'] != null) {
+      evnt = new EventDetails.fromJson(resp.body['event'], _rootUri);
+    }
+    return evnt;
   }
 
   Future<ClientResponse> get(String path, [Map queryParams]) async {
@@ -188,7 +246,13 @@ abstract class PathHelper {
   static final String cgi = '$root/cgi-bin';
   static final String auth = '$root/index.php';
 
-  static final String monitorStream = '$cgi/zms';
+  static final String stream = '$cgi/zms';
   static final String monitors = '$api/monitors.json';
   static String monitor(int id) => '$api/monitors/$id.json';
+
+  static final String events = '$api/events';
+  static final String allEvents = '$events.json';
+  static String monitorEvents(Monitor monitor) =>
+      '$events/index/MonitorId:${monitor.id}.json';
+  static String event(int id) => '$events/$id.json';
 }
