@@ -14,6 +14,7 @@ Future main(List<String> args) async {
         SiteNode.isType: (String path) => new SiteNode(path),
         ZmValue.isType: (String path) => new ZmValue(path),
         MonitorNode.isType: (String path) => new MonitorNode(path),
+        VideoNode.isType: (String path) => new VideoNode(path),
         RefreshMonitorNode.isType: (String path) => new RefreshMonitorNode(path)
       }, defaultNodes: {
         'Sites' : {
