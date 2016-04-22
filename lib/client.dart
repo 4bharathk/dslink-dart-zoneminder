@@ -160,6 +160,12 @@ class ZmClient {
     return evnt;
   }
 
+  Future<bool> deleteEvent(Event event) async {
+    var resp = await delete(PathHelper.event(event.id));
+    if (resp == null || resp.status != HttpStatus.OK) return false;
+    return true;
+  }
+
   Future<ClientResponse> get(String path, [Map queryParams]) async {
     var uri = _generateUri(path, queryParams);
     return _sendRequest(RequestType.get, uri);
@@ -220,7 +226,11 @@ class ZmClient {
         req.cookies.addAll(_cookies);
       }
       resp = await req.close();
-      var body = JSON.decode(await UTF8.decodeStream(resp));
+      var bodyStr = await UTF8.decodeStream(resp);
+      var body;
+      if(bodyStr != null && bodyStr.isNotEmpty) {
+        body = JSON.decode(bodyStr);
+      }
       ret = new ClientResponse(resp.statusCode, body);
     } catch (e, s) {
       logger.warning('Unable to complete request:', e, s);

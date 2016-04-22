@@ -62,6 +62,42 @@ class GetEventsNode extends ZmNode {
   }
 }
 
+class DeleteEvent extends ZmNode {
+  static const String isType = 'deleteEventNode';
+  static const String pathName = 'Delete_Event';
+
+  static const String _success = 'success';
+  static const String _message = 'message';
+
+  static Map<String, dynamic> definition() => {
+    r'$is' : isType,
+    r'$name' : 'Delete Event',
+    r'$invokable' : 'write',
+    r'$params' : [],
+    r'$columns' : [
+      { 'name' : _success, 'type' : 'bool', 'default' : false },
+      { 'name' : _message, 'type' : 'string', 'default': '' }
+    ]
+  };
+
+  DeleteEvent(String path) : super(path);
+
+  @override
+  Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {
+    var ret = { _success: false, _message : '' };
+
+    var event = (parent as EventNode).event;
+    var client = getClient();
+    ret[_success] = await client.deleteEvent(event);
+    ret[_message] = (ret[_success] ? 'Success!': 'Unable to delete event');
+    if (ret[_success]) {
+      provider.removeNode(parent.path);
+    }
+
+    return ret;
+  }
+}
+
 class EventNode extends ZmNode {
   static const String isType = 'eventNode';
   static Map<String, dynamic> definition(Event event) => {
@@ -85,10 +121,12 @@ class EventNode extends ZmNode {
       'avgScore': ZmValue.definition('Average Score', 'number', event.avgScore),
       'maxScore': ZmValue.definition('Max Score', 'number', event.maxScore)
     },
+    'stream': ZmValue.definition('Stream', 'string', event.stream.toString()),
     'notes': ZmValue.definition('Notes', 'string', event.notes, write: true),
     'Frames': {
       // GetFrames.pathName: GetFrames.definition()
-    }
+    },
+    DeleteEvent.pathName: DeleteEvent.definition()
   };
 
   Event event;

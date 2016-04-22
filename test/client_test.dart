@@ -15,6 +15,5 @@ main() async {
     print('${mon.id}: ${mon.name}');
   }
 
-  var list = await client.getEvent(1);
-  print(list.frames.where((f) => f.type == 'Alarm').map((f) => f.imageUri));
+  var err = await client.deleteEvent(15);
 }
