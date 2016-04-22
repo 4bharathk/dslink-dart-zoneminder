@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'common.dart';
+import 'video_node.dart';
 import '../../models.dart';
 
-class MonitorNode extends ZmNode {
+class MonitorNode extends ZmNode implements MonitorView {
   static const String isType = 'monitorNode';
   static Map<String, dynamic> definition(Monitor monitor) => {
     r'$is': isType,
@@ -25,12 +26,20 @@ class MonitorNode extends ZmNode {
         monitor.v4LMultiBuffer),
     'liveUri': ZmValue.definition('Live URL', 'string',
         monitor.stream.toString()),
+    //'liveFeed': VideoNode.definition(VideoNode.liveFeed),
+    'events': {
+
+    },
     RefreshMonitorNode.pathName: RefreshMonitorNode.definition()
   };
 
-  Monitor monitor;
+  Future<Monitor> getMonitor() => _monitorComp.future;
+  void set monitor(Monitor monitor) => _monitorComp.complete(monitor);
+  Completer<Monitor> _monitorComp;
 
-  MonitorNode(String path) : super(path);
+  MonitorNode(String path) : super(path) {
+    _monitorComp = new Completer<Monitor>();
+  }
 
   void update(Monitor monitor) {
     provider.updateValue('$path/id', monitor.id);
@@ -74,7 +83,7 @@ class RefreshMonitorNode extends ZmNode {
   Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {
     var ret = { _success: false, _message : '' };
 
-    var monitor = (parent as MonitorNode).monitor;
+    var monitor = await (parent as MonitorNode).getMonitor();
     var client = getClient();
 
     var result = await client?.getMonitor(monitor.id);

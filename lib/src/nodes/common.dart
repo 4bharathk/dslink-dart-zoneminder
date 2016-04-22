@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:dslink/dslink.dart';
 
 import 'site_node.dart';
 import '../../client.dart';
+import '../../models.dart';
 
 abstract class ZmNode extends SimpleNode {
 
@@ -43,4 +46,10 @@ class ZmValue extends SimpleNode {
   ZmValue(String path) : super(path) {
     serializable = false;
   }
+}
+
+abstract class MonitorView {
+  Future<Monitor> getMonitor();
+  void set monitor(Monitor monitor);
+  void update(Monitor monitor);
 }
