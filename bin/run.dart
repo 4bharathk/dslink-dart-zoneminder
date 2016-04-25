@@ -18,7 +18,9 @@ Future main(List<String> args) async {
         RefreshMonitorNode.isType: (String path) => new RefreshMonitorNode(path),
         GetEventsNode.isType: (String path) => new GetEventsNode(path),
         EventNode.isType: (String path) => new EventNode(path),
-        DeleteEvent.isType: (String path) => new DeleteEvent(path)
+        DeleteEvent.isType: (String path) => new DeleteEvent(path),
+        GetFrames.isType: (String path) => new GetFrames(path),
+        FrameNode.isType: (String path) => new FrameNode(path)
       }, defaultNodes: {
       'Sites' : {
         AddSiteNode.pathName: AddSiteNode.definition()
