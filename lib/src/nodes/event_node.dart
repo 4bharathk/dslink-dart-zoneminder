@@ -12,7 +12,7 @@ class GetEventsNode extends ZmNode {
 
   static Map<String, dynamic> definition() => {
     r'$is' : isType,
-    r'$name' : 'Get Events',
+    r'$name' : 'Load Events',
     r'$invokable' : 'write',
     r'$params' : [],
     r'$columns' : [
@@ -40,10 +40,14 @@ class GetEventsNode extends ZmNode {
       ret[_success] = true;
       ret[_message] = 'Success!';
       var pPath = parent.path;
+
+      for (var nd in parent.children.values) {
+        if (nd is! EventNode) continue;
+        parent.removeChild((nd as EventNode).name);
+      }
+
       for (var event in events) {
-        var nd = provider.getNode('$pPath/${event.id}');
-        if (nd != null) continue;
-        nd = provider.addNode('$pPath/${event.id}', EventNode.definition(event));
+        var nd = provider.addNode('$pPath/${event.id}', EventNode.definition(event));
         (nd as EventNode).event = event;
       }
     }

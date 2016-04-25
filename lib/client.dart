@@ -141,10 +141,13 @@ class ZmClient {
       }
     }
 
-    var curPage = resp.body['pagination']['page'];
-    var pageCount = resp.body['pagination']['pageCount'];
-    if (curPage < pageCount) {
-      list.addAll(await getEvents(monitor, curPage + 1));
+    var pagination = resp.body['pagination'];
+    if (pagination != null) {
+      var curPage = pagination['page'];
+      var pageCount = pagination['pageCount'];
+      if (curPage < pageCount) {
+        list.addAll(await getEvents(monitor, curPage + 1));
+      }
     }
 
     return list;
