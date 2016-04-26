@@ -169,6 +169,25 @@ class ZmClient {
     return true;
   }
 
+  Future<Host> getHostDetails() async {
+    var host = new Host();
+    var futs = new List<Future>();
+    futs.add(get(PathHelper.running).then((cr) {
+      if (cr == null || cr.body == null) return;
+      host.parseRunning(cr.body);
+    }));
+    futs.add(get(PathHelper.load).then((cr) {
+      if (cr == null || cr.body == null) return;
+      host.parseLoad(cr.body);
+    }));
+    futs.add(get(PathHelper.diskUsage).then((cr) {
+      if (cr == null || cr.body == null) return;
+      host.parseDisk(cr.body);
+    }));
+    await Future.wait(futs);
+    return host;
+  }
+
   Future<ClientResponse> get(String path, [Map queryParams]) async {
     var uri = _generateUri(path, queryParams);
     return _sendRequest(RequestType.get, uri);
@@ -268,4 +287,9 @@ abstract class PathHelper {
   static String monitorEvents(Monitor monitor) =>
       '$events/index/MonitorId:${monitor.id}.json';
   static String event(int id) => '$events/$id.json';
+
+  static final String host = '$api/host';
+  static final String diskUsage = '$host/getDiskPercent.json';
+  static final String load = '$host/getLoad.json';
+  static final String running = '$host/daemonCheck.json';
 }
