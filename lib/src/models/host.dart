@@ -19,7 +19,9 @@ class Host {
   void parseDisk(Map map) {
     if (map['usage'] == null) return;
     (map['usage'] as Map<String, Map>).forEach((key, value) {
-      diskUsage[key] = value['space'];
+      diskUsage[key] = value['space'] is num ?
+          value['space'] :
+          num.parse(value['space']);
     });
   }
 }

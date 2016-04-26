@@ -4,8 +4,10 @@ import 'package:dslink/dslink.dart';
 import 'package:dslink/utils.dart' show logger;
 import 'package:dslink/nodes.dart' show NodeNamer;
 
-import '../../client.dart';
 import 'monitor_node.dart';
+import 'common.dart';
+import '../../client.dart';
+import '../../models.dart' show Host;
 
 class AddSiteNode extends SimpleNode {
   static const String isType = 'addSite';
@@ -228,11 +230,14 @@ class SiteNode extends SimpleNode {
     _pass: pass,
     'monitors': {},
     EditSiteNode.pathName: EditSiteNode.definition(uri, user, pass),
-    RemoveSiteNode.pathName: RemoveSiteNode.definition()
+    RemoveSiteNode.pathName: RemoveSiteNode.definition(),
   };
+
+  static const Duration _duration = const Duration(seconds: 10);
 
   SiteNode(String path) : super(path);
   ZmClient client;
+  Timer timer;
 
   @override
   onCreated() async {
@@ -260,6 +265,15 @@ class SiteNode extends SimpleNode {
           MonitorNode.definition(monitor));
       (nd as MonitorNode).monitor = monitor;
     }
+
+    client.getHostDetails().then((host) {
+      updateHost(host);
+      if (timer != null) return;
+
+      timer = new Timer.periodic(_duration, (_) async {
+        updateHost(await client.getHostDetails());
+      });
+    });
   }
 
   @override
@@ -277,6 +291,33 @@ class SiteNode extends SimpleNode {
     configs[_url] = uri.toString();
     configs[_user] = username;
     configs[_pass] = password;
+  }
+
+  void updateHost(Host host) {
+    void getOrUpdate(String path, Map node) {
+      var nd = provider.getNode(path);
+      if (nd != null) {
+        nd.updateValue(node['?value']);
+        return;
+      }
+
+      provider.addNode(path, node);
+    }
+
+    getOrUpdate('$path/running',
+        ZmValue.definition('Running', 'bool', host.isRunning));
+    getOrUpdate('$path/cpuOne',
+        ZmValue.definition('CPU Avg (1 Minute)', 'number', host.cpuOne));
+    getOrUpdate('$path/cpuFive',
+        ZmValue.definition('CPU Avg (5 Minute)', 'number', host.cpuFive));
+    getOrUpdate('$path/cpuFifteen',
+        ZmValue.definition('CPU Avg (15 Minute)', 'number', host.cpuFifteen));
+
+    host.diskUsage.forEach((String monitor, num disk) {
+      var nm = NodeNamer.createName(monitor);
+      getOrUpdate('$path/$nm',
+          ZmValue.definition('$monitor Disk Space (GB)', 'number', disk));
+    });
   }
 
 }
