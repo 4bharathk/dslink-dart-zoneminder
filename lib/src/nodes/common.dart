@@ -6,9 +6,8 @@ import 'site_node.dart';
 import '../../client.dart';
 import '../../models.dart';
 
-abstract class ZmNode extends SimpleNode {
-
-  ZmNode(String path) : super(path) {
+abstract class ZmParent extends SimpleNode {
+  ZmParent(String path) : super(path) {
     serializable = false;
   }
 
@@ -20,6 +19,13 @@ abstract class ZmNode extends SimpleNode {
 
     return (p as SiteNode)?.client;
   }
+}
+
+abstract class ZmNode extends ZmParent {
+
+  ZmNode(String path) : super(path);
+
+  bool onSetChild(value, ZmValue node);
 }
 
 class ZmValue extends SimpleNode {
@@ -46,6 +52,17 @@ class ZmValue extends SimpleNode {
   ZmValue(String path) : super(path) {
     serializable = false;
   }
+
+  ZmNode getParent() {
+    var p = parent;
+    while (p != null && p is! ZmNode) {
+      p = p.parent;
+    }
+    return p;
+  }
+
+  @override
+  bool onSetValue(value) => getParent().onSetChild(value, this);
 }
 
 abstract class MonitorView {

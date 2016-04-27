@@ -153,6 +153,7 @@ class ZmClient {
     return list;
   }
 
+  /// Retrieve full [EventDetails] for the event specified by `id`.
   Future<EventDetails> getEvent(int id) async {
     var resp = await get(PathHelper.event(id));
     if(resp == null) return null;
@@ -163,9 +164,24 @@ class ZmClient {
     return evnt;
   }
 
+  /// Deleted the specified [Event] from the server, including related image
+  /// captures. Return a Future boolean. `true` on success, `false` on failure.
   Future<bool> deleteEvent(Event event) async {
     var resp = await delete(PathHelper.event(event.id));
     if (resp == null || resp.status != HttpStatus.OK) return false;
+    return true;
+  }
+
+  Future<bool>setEventDetails(Event event, String key, String value) async {
+    if (key == null || key.isEmpty || value == null || value.isEmpty)
+      return false;
+    var body = {
+      'Event[$key]': value
+    };
+    var resp = await put(PathHelper.event(event.id), null, body);
+    logger.finest('Set Event Details response: ${resp.body}');
+    if (resp == null || resp.status != HttpStatus.OK ||
+        resp.body['message'] != 'Saved') return false;
     return true;
   }
 
@@ -190,22 +206,22 @@ class ZmClient {
 
   Future<ClientResponse> get(String path, [Map queryParams]) async {
     var uri = _generateUri(path, queryParams);
-    return _sendRequest(RequestType.get, uri);
+    return _sendRequest(RequestType.get, uri, null);
   }
 
-  Future<ClientResponse> post(String path, [Map queryParams]) async {
+  Future<ClientResponse> post(String path, [Map queryParams, Map body]) async {
     var uri = _generateUri(path, queryParams);
-    return _sendRequest(RequestType.post, uri);
+    return _sendRequest(RequestType.post, uri, body);
   }
 
-  Future<ClientResponse> put(String path, [Map queryParams]) async {
+  Future<ClientResponse> put(String path, [Map queryParams, Map body]) async {
     var uri = _generateUri(path, queryParams);
-    return _sendRequest(RequestType.put, uri);
+    return _sendRequest(RequestType.put, uri, body);
   }
 
   Future<ClientResponse> delete(String path, [Map queryParams]) async {
     var uri = _generateUri(path, queryParams);
-    return _sendRequest(RequestType.delete, uri);
+    return _sendRequest(RequestType.delete, uri, null);
   }
 
   void close() {
@@ -223,11 +239,13 @@ class ZmClient {
     return uri;
   }
 
-  Future<ClientResponse> _sendRequest(RequestType type, Uri uri) async {
+  Future<ClientResponse> _sendRequest(RequestType type, Uri uri, Map body) async {
     HttpClientRequest req;
     HttpClientResponse resp;
     ClientResponse ret;
+    logger.finest('Uri: $uri');
 
+    var bodyStr = '';
     try {
       switch (type) {
         case RequestType.get:
@@ -247,15 +265,29 @@ class ZmClient {
       if (_cookies != null && _cookies.isNotEmpty) {
         req.cookies.addAll(_cookies);
       }
-      resp = await req.close();
-      var bodyStr = await UTF8.decodeStream(resp);
-      var body;
-      if(bodyStr != null && bodyStr.isNotEmpty) {
-        body = JSON.decode(bodyStr);
+      if (body != null) {
+        req.headers.contentType = new ContentType('application', 'x-www-form-urlencoded');
+        var str = '';
+        for (var key in body.keys) {
+          str += Uri.encodeQueryComponent(key);
+          str += '=' + Uri.encodeQueryComponent(body[key]);
+        }
+        req.write(str);
       }
-      ret = new ClientResponse(resp.statusCode, body);
+      resp = await req.close();
+      bodyStr = await UTF8.decodeStream(resp);
+      var respBody;
+      if (bodyStr != null && bodyStr.isNotEmpty) {
+        respBody = JSON.decode(bodyStr);
+      }
+      ret = new ClientResponse(resp.statusCode, respBody);
+    } on FormatException catch (e, s) {
+      logger.warning('Unable to complete request: $type, Path: ${uri.path}');
+      logger.finest('Invalid Content: $bodyStr}');
+      logger.finest('Stacktrace', e, s);
     } catch (e, s) {
-      logger.warning('Unable to complete request:', e, s);
+      logger.warning('Unable to complete request: $type, Path: ${uri.path}');
+      logger.finest('Stacktrace', e, s);
       ret = null;
     }
 

@@ -34,4 +34,6 @@ class VideoNode extends ZmNode {
       }
       });
   }
+
+  bool onSetChild(value, ZmValue node) {}
 }

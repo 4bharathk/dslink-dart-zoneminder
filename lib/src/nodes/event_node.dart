@@ -3,7 +3,7 @@ import 'dart:async';
 import 'common.dart';
 import '../../models.dart';
 
-class GetEventsNode extends ZmNode {
+class GetEventsNode extends ZmParent {
   static const String isType = 'getEventsNode';
   static const String pathName = 'Get_Events';
 
@@ -41,9 +41,10 @@ class GetEventsNode extends ZmNode {
       ret[_message] = 'Success!';
       var pPath = parent.path;
 
-      for (var nd in parent.children.values) {
-        if (nd is! EventNode) continue;
-        parent.removeChild((nd as EventNode).name);
+      var ndList = parent.children.values.toList();
+      for (var nd in ndList) {
+        if (nd == null || nd is! EventNode) continue;
+        provider.removeNode((nd as EventNode).path);
       }
 
       for (var event in events) {
@@ -66,7 +67,7 @@ class GetEventsNode extends ZmNode {
   }
 }
 
-class DeleteEvent extends ZmNode {
+class DeleteEvent extends ZmParent {
   static const String isType = 'deleteEventNode';
   static const String pathName = 'Delete_Event';
 
@@ -136,9 +137,31 @@ class EventNode extends ZmNode {
   Event event;
 
   EventNode(String path) : super(path);
+
+  bool onSetChild(value, ZmValue node) {
+    var client = getClient();
+    var oldValue = node.value;
+    if (node.name == 'name') {
+      client.setEventDetails(event, 'Name', value).then((success) {
+        if (success) return;
+        node.updateValue(oldValue);
+        this.displayName = oldValue;
+      });
+      this.displayName = value;
+      return false;
+    } else if (node.name == 'notes') {
+      client.setEventDetails(event, 'Notes', value).then((success) {
+        if (success) return;
+        node.updateValue(oldValue);
+      });
+      return false;
+    }
+    return true;
+  }
+
 }
 
-class GetFrames extends ZmNode {
+class GetFrames extends ZmParent {
   static const String isType = 'getFrames';
   static const String pathName = 'Get_Frames';
 
@@ -210,4 +233,6 @@ class FrameNode extends ZmNode {
   };
 
   FrameNode(String path): super(path);
+
+  bool onSetChild(value, ZmValue node) {}
 }

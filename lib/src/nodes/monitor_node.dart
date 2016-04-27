@@ -60,7 +60,7 @@ class MonitorNode extends ZmNode implements MonitorView {
   }
 }
 
-class RefreshMonitorNode extends ZmNode {
+class RefreshMonitorNode extends ZmParent {
   static const String isType = 'refreshMonitorNode';
   static const String pathName = 'Refresh_Monitor';
 
