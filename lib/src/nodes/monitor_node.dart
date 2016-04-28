@@ -39,7 +39,7 @@ class MonitorNode extends ZmNode implements MonitorView {
     'device': ZmValue.definition('Device', 'string', monitor.device),
     'channel': ZmValue.definition('Channel', 'number', monitor.channel),
     'format': ZmValue.definition('Format', 'string', monitor.format),
-    MonitorNames._v4MultiBuffer: ZmValue.definition('v4L MultiBuffer', 'bool',
+    MonitorNames._v4MultiBuffer: ZmValue.definition('V4L MultiBuffer', 'bool',
         monitor.v4LMultiBuffer, write: true),
     'liveUri': ZmValue.definition('Live URL', 'string',
         monitor.stream.toString()),

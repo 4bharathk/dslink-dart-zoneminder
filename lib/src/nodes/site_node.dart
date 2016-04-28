@@ -231,6 +231,7 @@ class SiteNode extends SimpleNode {
     'monitors': {},
     EditSiteNode.pathName: EditSiteNode.definition(uri, user, pass),
     RemoveSiteNode.pathName: RemoveSiteNode.definition(),
+    RestartZm.pathName: RestartZm.definition()
   };
 
   static const Duration _duration = const Duration(seconds: 10);
@@ -278,6 +279,9 @@ class SiteNode extends SimpleNode {
 
   @override
   void onRemoving() {
+    if (timer != null && timer.isActive) {
+      timer.cancel();
+    }
     client?.close();
   }
 
@@ -320,4 +324,36 @@ class SiteNode extends SimpleNode {
     });
   }
 
+}
+
+class RestartZm extends ZmParent {
+  static const String isType = 'restartZmNode';
+  static const String pathName = 'Restart_ZoneMinder';
+
+  static const String _success = 'success';
+  static const String _message = 'message';
+
+  static Map<String, dynamic> definition() => {
+    r'$is' : isType,
+    r'$name' : 'Restart ZoneMinder',
+    r'$invokable' : 'write',
+    r'$params' : [],
+    r'$columns' : [
+      { 'name' : _success, 'type' : 'bool', 'default' : false },
+      { 'name' : _message, 'type' : 'string', 'default': '' }
+    ]
+  };
+
+  RestartZm(String path) : super(path);
+
+  @override
+  Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {
+    var ret = { _success: false, _message : '' };
+
+    var client = getClient();
+    ret[_success] = await client.restartDaemon();
+    ret[_message] =
+        (ret[_success] ? 'Success!' : 'Unable to restart ZoneMinder.');
+    return ret;
+  }
 }

@@ -217,6 +217,12 @@ class ZmClient {
     return host;
   }
 
+  Future<bool> restartDaemon() async {
+    var resp = await post(PathHelper.restart);
+    if (resp == null || resp.body == null || resp.body.isEmpty) return false;
+    return true;
+  }
+
   Future<ClientResponse> get(String path, [Map queryParams]) async {
     var uri = _generateUri(path, queryParams);
     return _sendRequest(RequestType.get, uri, null);
@@ -334,7 +340,9 @@ abstract class PathHelper {
   static String event(int id) => '$events/$id.json';
 
   static final String host = '$api/host';
+  static final String states = '$api/states';
   static final String diskUsage = '$host/getDiskPercent.json';
   static final String load = '$host/getLoad.json';
   static final String running = '$host/daemonCheck.json';
+  static final String restart = '$states/change/restart.json';
 }
