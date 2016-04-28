@@ -103,6 +103,20 @@ class ZmClient {
     return ret;
   }
 
+  Future<bool>setMonitorDetails(Monitor monitor, String key, String value) async {
+    if (key == null || key.isEmpty || value == null || value.isEmpty) {
+      return false;
+    }
+
+    var body = { 'Monitor[$key]': value };
+    var resp = await put(PathHelper.monitor(monitor.id), null, body);
+
+    logger.finest('Set Monitor Details response: ${resp?.body}');
+    if (resp == null || resp.status != HttpStatus.OK ||
+        resp.body['message'] != 'Saved') return false;
+    return true;
+  }
+
   /// Retrieve the stream of the live video feed.
   Stream<List<int>> getMonitorFeed(Monitor monitor) async* {
     var uri = monitor.stream;
@@ -179,7 +193,6 @@ class ZmClient {
       'Event[$key]': value
     };
     var resp = await put(PathHelper.event(event.id), null, body);
-    logger.finest('Set Event Details response: ${resp.body}');
     if (resp == null || resp.status != HttpStatus.OK ||
         resp.body['message'] != 'Saved') return false;
     return true;

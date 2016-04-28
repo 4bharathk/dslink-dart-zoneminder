@@ -5,26 +5,42 @@ import 'common.dart';
 import 'event_node.dart';
 import '../../models.dart';
 
+abstract class MonitorNames {
+  static const _name = 'name';
+  static const _function = 'function';
+  static const _enabled = 'enabled';
+  static const _v4MultiBuffer = 'v4multibuffer';
+  static const Map<String, String> server = const {
+    _name: 'Name',
+    _function: 'Function',
+    _enabled: 'Enabled',
+    _v4MultiBuffer: 'V4LMultiBuffer'
+  };
+}
+
 class MonitorNode extends ZmNode implements MonitorView {
   static const String isType = 'monitorNode';
   static Map<String, dynamic> definition(Monitor monitor) => {
     r'$is': isType,
     r'$name': monitor.name,
     'id': ZmValue.definition('Id', 'number', monitor.id),
-    'name': ZmValue.definition('Name', 'string', monitor.name, write: true),
+    MonitorNames._name:
+        ZmValue.definition('Name', 'string', monitor.name, write: true),
     'serverId': ZmValue.definition('Server Id', 'number', monitor.serverId),
     'type': ZmValue.definition('Type', 'string', monitor.type),
-    'function': ZmValue.definition('Function', Monitor.functionsEnum,
-        monitor.function, write: true),
-    'enabled': ZmValue.definition('Enabled', 'bool', monitor.enabled),
+    MonitorNames._function:
+        ZmValue.definition('Function', Monitor.functionsEnum, monitor.function,
+            write: true),
+    MonitorNames._enabled:
+        ZmValue.definition('Enabled', 'bool', monitor.enabled, write: true),
     'linkedMonitors': ZmValue.definition('Linked Monitors', 'string',
         monitor.linkedMonitors),
     'triggers': ZmValue.definition('Triggers', 'string', monitor.triggers),
     'device': ZmValue.definition('Device', 'string', monitor.device),
     'channel': ZmValue.definition('Channel', 'number', monitor.channel),
     'format': ZmValue.definition('Format', 'string', monitor.format),
-    'v4multibuffer': ZmValue.definition('v4 MultiBuffer', 'bool',
-        monitor.v4LMultiBuffer),
+    MonitorNames._v4MultiBuffer: ZmValue.definition('v4L MultiBuffer', 'bool',
+        monitor.v4LMultiBuffer, write: true),
     'liveUri': ZmValue.definition('Live URL', 'string',
         monitor.stream.toString()),
     //'liveFeed': VideoNode.definition(VideoNode.liveFeed),
@@ -34,9 +50,15 @@ class MonitorNode extends ZmNode implements MonitorView {
     RefreshMonitorNode.pathName: RefreshMonitorNode.definition()
   };
 
-  Future<Monitor> getMonitor() => _monitorComp.future;
-  void set monitor(Monitor monitor) => _monitorComp.complete(monitor);
+  Future<Monitor> getMonitor() async {
+    return _monitor ?? _monitorComp.future;
+  }
+  void set monitor(Monitor monitor) {
+    _monitor = monitor;
+    _monitorComp.complete(_monitor);
+  }
   Completer<Monitor> _monitorComp;
+  Monitor _monitor;
 
   MonitorNode(String path) : super(path) {
     _monitorComp = new Completer<Monitor>();
@@ -57,6 +79,38 @@ class MonitorNode extends ZmNode implements MonitorView {
     provider.updateValue('$path/format', monitor.format);
     provider.updateValue('$path/v4multibuffer', monitor.v4LMultiBuffer);
     provider.updateValue('$path/liveUri', monitor.stream.toString());
+  }
+
+  bool onSetChild(value, ZmValue node) {
+    var client = getClient();
+    var oldVal = node.value;
+
+    Future<bool> fut;
+    switch (node.name) {
+      case MonitorNames._name:
+        fut = client.setMonitorDetails(_monitor,
+                MonitorNames.server[node.name], value);
+        displayName = name;
+        break;
+      case MonitorNames._enabled:
+        var tmp = (value ? "1" : "0");
+        fut = client.setMonitorDetails(_monitor,
+                MonitorNames.server[node.name], tmp);
+        break;
+      case MonitorNames._v4MultiBuffer:
+      case MonitorNames._function:
+        fut = client.setMonitorDetails(_monitor,
+                  MonitorNames.server[node.name], value);
+        break;
+      default: return true;
+    }
+
+    fut.then((success) {
+      if (success) return;
+      node.updateValue(oldVal);
+      if (node.name == MonitorNames._name) displayName = oldVal;
+    });
+    return false;
   }
 }
 

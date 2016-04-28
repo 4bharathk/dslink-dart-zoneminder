@@ -146,14 +146,18 @@ class EventNode extends ZmNode {
         if (success) return;
         node.updateValue(oldValue);
         this.displayName = oldValue;
+        event.name = oldValue;
       });
+      event.name = value;
       this.displayName = value;
       return false;
     } else if (node.name == 'notes') {
       client.setEventDetails(event, 'Notes', value).then((success) {
         if (success) return;
         node.updateValue(oldValue);
+        event.notes = oldValue;
       });
+      event.notes = value;
       return false;
     }
     return true;
