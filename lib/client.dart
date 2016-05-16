@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert' show UTF8, JSON, BASE64;
-//import 'dart:typed_data' show Uint8List, ByteData;
+import 'dart:typed_data' show Uint8List, ByteData;
 import 'dart:io';
 
-import 'package:dslink/utils.dart' show logger;
+import 'package:dslink/utils.dart' show logger, ByteDataUtil;
 
 import 'models.dart';
 
@@ -86,7 +86,7 @@ class ZmClient {
       for(var map in resp.body['monitors']) {
         var mon = new Monitor.fromMap(map['Monitor']);
         mon.stream = _rootUri.replace(path: PathHelper.stream,
-            queryParameters: {'monitor' : '${mon.id}', 'user': _username});
+            queryParameters: {'monitor' : '${mon.id}', 'user': _username, 'maxfps': '24'});
         list.add(mon);
       }
     }
@@ -102,7 +102,11 @@ class ZmClient {
     if (resp.body['monitor'] != null && resp.body['monitor'].containsKey('Monitor')) {
       ret = new Monitor.fromMap(resp.body['monitor']['Monitor']);
       ret.stream = _rootUri.replace(path: PathHelper.stream,
-          queryParameters: {'monitor' : '${ret.id}', 'user': _username}, fragment: null);
+          queryParameters: {
+            'monitor' : '${ret.id}',
+            'user': _username,
+            'maxfps': '24'
+          }, fragment: null);
     }
 
     return ret;
@@ -123,34 +127,36 @@ class ZmClient {
   }
 
   /// Retrieve the stream of the live video feed.
-  Stream<List<int>> getMonitorFeed(Monitor monitor) async* {
+  Stream<ByteData> getMonitorFeed(Monitor monitor) async* {
     var uri = monitor.stream;
     var req = await _client.getUrl(uri);
     if (_cookies != null && _cookies.isNotEmpty) {
       req.cookies.addAll(_cookies);
     }
     var resp = await req.close();
+
     bool foundStart = false;
     var list = <int>[];
-    await for (var data in resp) {
-      for (var i = 0; i < data.length; i++) {
-        if (foundStart) {
-          list.add(data[i]);
-          if (data[i] == jpegEnd[1] && i > 0 && data[i - 1] == jpegEnd[0]) {
-            foundStart = false;
-            yield list;
-          }
-        }
 
-        if (data[i] == jpegStart[0] && i < (data.length - 1) &&
-            data[i + 1] == jpegStart[1]) {
-          foundStart = true;
-          list.add(data[i]);
-        }
-      }
-//      yield data;
-      //var dta = new Uint8List.fromList(data);
-      //yield dta.buffer.asByteData();
+    await for (var data in resp) {
+//      for (var i = 0; i < data.length; i++) {
+//        if (foundStart) {
+//          list.add(data[i]);
+//          if (data[i] == jpegEnd[1] && i > 0 && data[i - 1] == jpegEnd[0]) {
+//            foundStart = false;
+//            yield ByteDataUtil.fromList(list);
+//          }
+//        }
+//
+//        if (data[i] == jpegStart[0] && i < (data.length - 1) &&
+//            data[i + 1] == jpegStart[1]) {
+//          foundStart = true;
+//          list.add(data[i]);
+//        }
+//      }
+      //yield data;
+      var dta = new Uint8List.fromList(data);
+      yield dta.buffer.asByteData();
     }
   }
 
