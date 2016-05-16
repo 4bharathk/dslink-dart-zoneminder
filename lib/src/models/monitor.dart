@@ -80,7 +80,9 @@ class Monitor {
   Monitor.fromMap(Map<String, String> m) {
     id = int.parse(m['Id']);
     name = m['Name'];
-    serverId = int.parse(m['ServerId']);
+    if (m['ServerId'] != null) {
+      serverId = int.parse(m['ServerId'], onError: (_) => null);
+    }
     type = m['Type'];
     function = m['Function'];
     enabled = m['Enabled'] == "1";
