@@ -59,7 +59,7 @@ class GetMonitors extends SimpleNode {
 
     for (var monitor in monitors) {
       monitor.instanceUrl = instanceUrl;
-      var name = NodeNamer.createName(monitor.id);
+      var name = NodeNamer.createName(monitor.id.toString());
       var node = provider.addNode('/$name', MonitorNode.definition(monitor));
       node.displayName = monitor.name;
     }

@@ -19,7 +19,7 @@ class MonitorStreamNode extends SimpleNode {
   @override
   Future onCreated() async {
     var monitorId = (parent as MonitorNode).monitor.id;
-    var monitorStream = await apiInstance.getMonitorStream(monitorId);
+    var monitorStream = await apiInstance.getMonitorStream(monitorId.toString());
 
     var streamConsumer = new VideoStreamConsumer();
 

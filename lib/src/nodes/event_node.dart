@@ -238,5 +238,7 @@ class FrameNode extends ZmNode {
 
   FrameNode(String path): super(path);
 
-  bool onSetChild(value, ZmValue node) {}
+  bool onSetChild(value, ZmValue node) {
+    return true;
+  }
 }

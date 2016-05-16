@@ -17,3 +17,7 @@ packages
 # Include when developing application packages.
 pubspec.lock
 
+.dslink.key
+nodes.json
+tmp/
+work/

@@ -31,13 +31,13 @@ class EventStreamNode extends SimpleNode {
 
   @override
   Future onSubscribe() async {
-    var videoLength = num.parse(event.length).ceil();
+    var videoLength = num.parse(event.length.toString()).ceil();
 
     var videoStreamConsumer = new VideoStreamConsumer();
 
     streamLoopTimer = new Timer.periodic(new Duration(seconds: videoLength + 5),
         (Timer t) async {
-      var byteStream = await apiInstance.getEventStream(event.id);
+      var byteStream = await apiInstance.getEventStream(event.id.toString());
       videoStreamConsumer.consume(byteStream, updateValue);
     });
   }

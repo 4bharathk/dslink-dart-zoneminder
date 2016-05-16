@@ -15,5 +15,5 @@ main() async {
     print('${mon.id}: ${mon.name}');
   }
 
-  var err = await client.deleteEvent(15);
+  var err = await client.deleteEvent(null);
 }

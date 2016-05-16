@@ -81,7 +81,7 @@ void main() {
       var v4lCapturesPerFrame = _randomString(10);
       monitor.v4LCapturesPerFrame = v4lCapturesPerFrame;
 
-      await api.updateMonitor(monitor.id, monitor);
+      await api.updateMonitor(monitor.id.toString(), monitor);
 
       var updatedMonitor = (await api.fetchAllMonitors())[0];
       expect(updatedMonitor.name, name);

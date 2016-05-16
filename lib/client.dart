@@ -139,24 +139,22 @@ class ZmClient {
     var list = <int>[];
 
     await for (var data in resp) {
-//      for (var i = 0; i < data.length; i++) {
-//        if (foundStart) {
-//          list.add(data[i]);
-//          if (data[i] == jpegEnd[1] && i > 0 && data[i - 1] == jpegEnd[0]) {
-//            foundStart = false;
-//            yield ByteDataUtil.fromList(list);
-//          }
-//        }
-//
-//        if (data[i] == jpegStart[0] && i < (data.length - 1) &&
-//            data[i + 1] == jpegStart[1]) {
-//          foundStart = true;
-//          list.add(data[i]);
-//        }
-//      }
-      //yield data;
-      var dta = new Uint8List.fromList(data);
-      yield dta.buffer.asByteData();
+      for (var i = 0; i < data.length; i++) {
+        if (foundStart) {
+          list.add(data[i]);
+          if (data[i] == jpegEnd[1] && i > 0 && data[i - 1] == jpegEnd[0]) {
+            foundStart = false;
+            yield ByteDataUtil.fromList(list);
+            list = <int>[];
+          }
+        }
+
+        if (data[i] == jpegStart[0] && i < (data.length - 1) &&
+            data[i + 1] == jpegStart[1]) {
+          foundStart = true;
+          list.add(data[i]);
+        }
+      }
     }
   }
 

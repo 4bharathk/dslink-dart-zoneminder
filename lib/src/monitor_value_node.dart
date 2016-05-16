@@ -32,7 +32,7 @@ class MonitorValueNode extends SimpleNode {
     monitorJson[name] = value;
     var updatedMonitor = new Monitor.fromMap(monitorJson);
 
-    apiInstance.updateMonitor(currentMonitor.id, updatedMonitor).then((_) {
+    apiInstance.updateMonitor(currentMonitor.id.toString(), updatedMonitor).then((_) {
       (parent as MonitorNode).monitor = updatedMonitor;
       updateValue(value);
       parent.displayName = updatedMonitor.name;
