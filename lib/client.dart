@@ -7,6 +7,9 @@ import 'package:dslink/utils.dart' show logger;
 
 import 'models.dart';
 
+const jpegStart = const <int>[0xff, 0xd8, 0xff];
+const jpegEnd = const <int>[0xff, 0xd9];
+
 class ZmClient {
   static Map<String, ZmClient> _cache = <String, ZmClient>{};
 
@@ -60,8 +63,10 @@ class ZmClient {
         body = await UTF8.decodeStream(resp);
       }
     } catch (e) {
+      logger.warning('Failed to authenticate', e);
       return _authenticated = false;
     }
+    logger.finest('Status: ${resp.statusCode} Body: $body');
     _authenticated = (resp.statusCode == HttpStatus.OK &&
         !body.contains("currentView = 'login'"));
     if (!_authenticated) {
@@ -125,8 +130,25 @@ class ZmClient {
       req.cookies.addAll(_cookies);
     }
     var resp = await req.close();
+    bool foundStart = false;
+    var list = <int>[];
     await for (var data in resp) {
-      yield data;
+      for (var i = 0; i < data.length; i++) {
+        if (foundStart) {
+          list.add(data[i]);
+          if (data[i] == jpegEnd[1] && i > 0 && data[i - 1] == jpegEnd[0]) {
+            foundStart = false;
+            yield list;
+          }
+        }
+
+        if (data[i] == jpegStart[0] && i < (data.length - 1) &&
+            data[i + 1] == jpegStart[1]) {
+          foundStart = true;
+          list.add(data[i]);
+        }
+      }
+//      yield data;
       //var dta = new Uint8List.fromList(data);
       //yield dta.buffer.asByteData();
     }
@@ -324,7 +346,7 @@ class ClientResponse {
 }
 
 abstract class PathHelper {
-  static final String root = '/zm';
+  static final String root = '';
   static final String api = '$root/api';
   static final String cgi = '$root/cgi-bin';
   static final String auth = '$root/index.php';
