@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'common.dart';
-//import 'video_node.dart';
+import 'video_node.dart';
 import 'event_node.dart';
 import '../../models.dart';
 
@@ -43,7 +43,7 @@ class MonitorNode extends ZmNode implements MonitorView {
         monitor.v4LMultiBuffer, write: true),
     'liveUri': ZmValue.definition('Live URL', 'string',
         monitor.stream.toString()),
-    //'liveFeed': VideoNode.definition(VideoNode.liveFeed),
+    'liveFeed': VideoNode.definition(VideoNode.liveFeed),
     'events': {
       GetEventsNode.pathName: GetEventsNode.definition()
     },

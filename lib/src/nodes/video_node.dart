@@ -19,7 +19,6 @@ class VideoNode extends ZmNode {
 
   @override
   void onCreated() {
-    print('Created video node');
     var client = getClient();
 
     var strType = getConfig(_feedType);
