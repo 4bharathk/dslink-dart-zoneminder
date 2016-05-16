@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:convert' show UTF8, JSON, BASE64;
-import 'dart:typed_data' show Uint8List, ByteData;
+import 'dart:convert' show UTF8, JSON;
+import 'dart:typed_data' show ByteData;
 import 'dart:io';
 
 import 'package:dslink/utils.dart' show logger, ByteDataUtil;
@@ -105,7 +105,7 @@ class ZmClient {
           queryParameters: {
             'monitor' : '${ret.id}',
             'user': _username,
-            'maxfps': '24'
+            'maxfps': '15'
           }, fragment: null);
     }
 
