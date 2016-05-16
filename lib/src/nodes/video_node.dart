@@ -24,15 +24,14 @@ class VideoNode extends ZmNode {
     var strType = getConfig(_feedType);
     (parent as MonitorNode).getMonitor().then((monitor) {
       if (strType == liveFeed) {
-        print('Trying to stream video');
         client.getMonitorFeed(monitor).listen((bd) {
           updateValue(bd);
         });
       } else {
-        // do it for events too
+        // TODO: do it for events too
       }
       });
   }
 
-  bool onSetChild(value, ZmValue node) {}
+  bool onSetChild(value, ZmValue node) => true;
 }
