@@ -37,7 +37,7 @@ class ZmClient {
   }
 
   ZmClient._(Uri uri, String username, String password) {
-    _rootUri = uri.replace(path: '', query: '');
+    _rootUri = uri;
     _username = username;
     _password = password;
     _client = new HttpClient();
@@ -53,8 +53,8 @@ class ZmClient {
       params['username'] = _username;
       params['password'] = _password;
     }
-
-    var uri = _rootUri.replace(path: PathHelper.auth, queryParameters: params);
+    var path = _rootUri.path + PathHelper.auth;
+    var uri = _rootUri.replace(path: path, queryParameters: params);
     HttpClientResponse resp;
     String body;
     try {
@@ -81,6 +81,7 @@ class ZmClient {
   /// Retrieve a list of all connected Monitors on the serve.
   /// Returns a List of [Monitor]s.
   Future<List<Monitor>> listMonitors() async {
+
     var resp = await get(PathHelper.monitors);
     if (resp == null) return null;
     List<Monitor> list;
@@ -88,7 +89,8 @@ class ZmClient {
       list = new List<Monitor>();
       for(var map in resp.body['monitors']) {
         var mon = new Monitor.fromMap(map['Monitor']);
-        mon.stream = _rootUri.replace(path: PathHelper.stream,
+        var path = _rootUri.path + PathHelper.stream;
+        mon.stream = _rootUri.replace(path: path,
             queryParameters: {
               'monitor' : '${mon.id}',
               'user': _username,
@@ -109,7 +111,8 @@ class ZmClient {
     Monitor ret;
     if (resp.body['monitor'] != null && resp.body['monitor'].containsKey('Monitor')) {
       ret = new Monitor.fromMap(resp.body['monitor']['Monitor']);
-      ret.stream = _rootUri.replace(path: PathHelper.stream,
+      var path = _rootUri.path + PathHelper.stream;
+      ret.stream = _rootUri.replace(path: path,
           queryParameters: {
             'monitor' : '${ret.id}',
             'user': _username,
@@ -194,7 +197,8 @@ class ZmClient {
       list = new List<Event>();
       for (var evnt in resp.body['events']) {
         var event = new Event.fromMap(evnt['Event']);
-        event.stream = _rootUri.replace(path: PathHelper.stream,
+        var path = _rootUri.path + PathHelper.stream;
+        event.stream = _rootUri.replace(path: path,
             queryParameters: {
               'source': 'event',
               'event': '${event.id}',
@@ -300,6 +304,7 @@ class ZmClient {
 
   Uri _generateUri(String path, Map queryParams) {
     Uri uri;
+    path = _rootUri.path + path;
     if (queryParams == null) {
       uri = _rootUri.replace(path: path);
     } else {

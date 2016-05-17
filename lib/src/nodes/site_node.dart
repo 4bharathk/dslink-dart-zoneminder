@@ -74,6 +74,9 @@ class AddSiteNode extends SimpleNode {
     }
     Uri uri;
     try {
+      if (url.endsWith('/')) {
+        url = url.substring(0, url.length - 1);
+      }
       uri = Uri.parse(url);
     } on Exception {
       ret[_message] = 'Error parsing the provided URL';
