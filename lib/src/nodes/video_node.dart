@@ -23,17 +23,16 @@ class VideoNode extends ZmNode {
 
   Monitor _monitor;
   ZmClient _client;
-  String _strType;
+  String get _strType => getConfig(_feedType);
 
   @override
   void onCreated() {
     _client = getClient();
 
-    _strType = getConfig(_feedType);
     (parent as MonitorNode).getMonitor().then((monitor) {
       _monitor = monitor;
 
-      if (_startLiveFeedNow) {
+      if (_strType == liveFeed && callbacks.isNotEmpty) {
         startLiveFeed();
         _startLiveFeedNow = false;
       }

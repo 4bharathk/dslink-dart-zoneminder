@@ -152,11 +152,10 @@ class ZmClient {
     try {
       await for (var data in resp) {
         var lastByte = null;
-        var nextByte = null;
         var lenSub1 = data.length - 1;
 
         for (var i = 0; i < data.length; i++) {
-          var b = nextByte != null ? nextByte : data[i];
+          var b = data[i];
 
           if (foundStart) {
             list.add(b);
@@ -167,16 +166,12 @@ class ZmClient {
             }
           }
 
-          if (b == jpegStartA && i < lenSub1 && nextByte == jpegStartB) {
+          if (b == jpegStartA && i < lenSub1 && data[i + 1] == jpegStartB) {
             foundStart = true;
             list.add(b);
           }
 
           lastByte = b;
-
-          if (i != lenSub1) {
-            nextByte = data[i + 1];
-          }
         }
       }
     } finally {
