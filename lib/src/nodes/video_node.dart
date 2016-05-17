@@ -34,16 +34,12 @@ class VideoNode extends ZmNode {
 
       if (_strType == liveFeed && callbacks.isNotEmpty) {
         startLiveFeed();
-        _startLiveFeedNow = false;
       }
     });
   }
 
-  bool _startLiveFeedNow = false;
-
   void startLiveFeed() {
     if (_monitor == null) {
-      _startLiveFeedNow = true;
       return;
     }
 
