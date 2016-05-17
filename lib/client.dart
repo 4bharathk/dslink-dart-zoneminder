@@ -374,7 +374,7 @@ class ClientResponse {
 }
 
 abstract class PathHelper {
-  static final String root = '/zm';
+  static final String root = '';
   static final String api = '$root/api';
   static final String cgi = '$root/cgi-bin';
   static final String auth = '$root/index.php';
