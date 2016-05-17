@@ -70,7 +70,6 @@ class ZmClient {
       logger.warning('Failed to authenticate', e);
       return _authenticated = false;
     }
-    logger.finest('Status: ${resp.statusCode} Body: $body');
     _authenticated = (resp.statusCode == HttpStatus.OK &&
         !body.contains("currentView = 'login'"));
     if (!_authenticated) {
@@ -375,7 +374,7 @@ class ClientResponse {
 }
 
 abstract class PathHelper {
-  static final String root = '';
+  static final String root = '/zm';
   static final String api = '$root/api';
   static final String cgi = '$root/cgi-bin';
   static final String auth = '$root/index.php';
