@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'monitor_node.dart';
 import 'common.dart';
+import '../../models.dart';
+import '../../client.dart';
 
 class VideoNode extends ZmNode {
   static const String liveFeed = 'liveFeed';
@@ -17,21 +21,60 @@ class VideoNode extends ZmNode {
 
   VideoNode(String path) : super(path);
 
+  Monitor _monitor;
+  ZmClient _client;
+  String _strType;
+
   @override
   void onCreated() {
-    var client = getClient();
+    _client = getClient();
 
-    var strType = getConfig(_feedType);
+    _strType = getConfig(_feedType);
     (parent as MonitorNode).getMonitor().then((monitor) {
-      if (strType == liveFeed) {
-        client.getMonitorFeed(monitor).listen((bd) {
-          updateValue(bd);
-        });
-      } else {
-        // TODO: do it for events too
+      _monitor = monitor;
+
+      if (_startLiveFeedNow) {
+        startLiveFeed();
+        _startLiveFeedNow = false;
       }
-      });
+    });
   }
+
+  bool _startLiveFeedNow = false;
+
+  void startLiveFeed() {
+    if (_monitor == null) {
+      _startLiveFeedNow = true;
+      return;
+    }
+
+    _sub = _client.getMonitorFeed(_monitor).listen((bd) {
+      updateValue(bd, force: true);
+    });
+  }
+
+  void stopLiveFeed() {
+    if (_sub != null) {
+      _sub.cancel();
+      _sub = null;
+    }
+  }
+
+  @override
+  void onSubscribe() {
+    if (_strType == liveFeed) {
+      startLiveFeed();
+    }
+  }
+
+  @override
+  void onUnsubscribe() {
+    if (_strType == liveFeed) {
+      stopLiveFeed();
+    }
+  }
+
+  StreamSubscription _sub;
 
   bool onSetChild(value, ZmValue node) => true;
 }

@@ -3,12 +3,16 @@ import 'dart:convert' show UTF8, JSON;
 import 'dart:typed_data' show ByteData;
 import 'dart:io';
 
-import 'package:dslink/utils.dart' show logger, ByteDataUtil;
+import 'package:typed_data/typed_data.dart';
+
+import 'package:dslink/utils.dart' show logger;
 
 import 'models.dart';
 
-const jpegStart = const <int>[0xff, 0xd8, 0xff];
-const jpegEnd = const <int>[0xff, 0xd9];
+const jpegStartA = 0xff;
+const jpegStartB = 0xd8;
+const jpegEndA = 0xff;
+const jpegEndB = 0xd9;
 
 class ZmClient {
   static Map<String, ZmClient> _cache = <String, ZmClient>{};
@@ -86,7 +90,12 @@ class ZmClient {
       for(var map in resp.body['monitors']) {
         var mon = new Monitor.fromMap(map['Monitor']);
         mon.stream = _rootUri.replace(path: PathHelper.stream,
-            queryParameters: {'monitor' : '${mon.id}', 'user': _username, 'maxfps': '24'});
+            queryParameters: {
+              'monitor' : '${mon.id}',
+              'user': _username,
+              'maxfps': '10',
+              'scale': '100'
+            });
         list.add(mon);
       }
     }
@@ -129,32 +138,53 @@ class ZmClient {
   /// Retrieve the stream of the live video feed.
   Stream<ByteData> getMonitorFeed(Monitor monitor) async* {
     var uri = monitor.stream;
-    var req = await _client.getUrl(uri);
+
+    var hClient = new HttpClient();
+    var req = await hClient.getUrl(uri);
     if (_cookies != null && _cookies.isNotEmpty) {
       req.cookies.addAll(_cookies);
     }
     var resp = await req.close();
 
     bool foundStart = false;
-    var list = <int>[];
+    var list = new Uint8Buffer();
 
-    await for (var data in resp) {
-      for (var i = 0; i < data.length; i++) {
-        if (foundStart) {
-          list.add(data[i]);
-          if (data[i] == jpegEnd[1] && i > 0 && data[i - 1] == jpegEnd[0]) {
-            foundStart = false;
-            yield ByteDataUtil.fromList(list);
-            list = <int>[];
+    try {
+      await for (var data in resp) {
+        var lastByte = null;
+        var nextByte = null;
+        var lenSub1 = data.length - 1;
+
+        for (var i = 0; i < data.length; i++) {
+          var b = nextByte != null ? nextByte : data[i];
+
+          if (foundStart) {
+            list.add(b);
+            if (b == jpegEndB && i > 0 && lastByte == jpegEndA) {
+              foundStart = false;
+              yield list.buffer.asByteData();
+              list = new Uint8Buffer();
+            }
+          }
+
+          if (b == jpegStartA && i < lenSub1 && nextByte == jpegStartB) {
+            foundStart = true;
+            list.add(b);
+          }
+
+          lastByte = b;
+
+          if (i != lenSub1) {
+            nextByte = data[i + 1];
           }
         }
-
-        if (data[i] == jpegStart[0] && i < (data.length - 1) &&
-            data[i + 1] == jpegStart[1]) {
-          foundStart = true;
-          list.add(data[i]);
-        }
       }
+    } finally {
+      try {
+        if (hClient != null) {
+          hClient.close(force: true);
+        }
+      } catch (e) {}
     }
   }
 
