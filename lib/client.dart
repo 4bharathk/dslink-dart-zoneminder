@@ -9,11 +9,6 @@ import 'package:dslink/utils.dart' show logger;
 
 import 'models.dart';
 
-const jpegStartA = 0xff;
-const jpegStartB = 0xd8;
-const jpegEndA = 0xff;
-const jpegEndB = 0xd9;
-
 class ZmClient {
   static Map<String, ZmClient> _cache = <String, ZmClient>{};
 
@@ -94,7 +89,7 @@ class ZmClient {
             queryParameters: {
               'monitor' : '${mon.id}',
               'user': _username,
-              'maxfps': '10',
+              'maxfps': '20',
               'scale': '100'
             });
         list.add(mon);
@@ -116,7 +111,8 @@ class ZmClient {
           queryParameters: {
             'monitor' : '${ret.id}',
             'user': _username,
-            'maxfps': '15'
+            'maxfps': '20',
+            'scale': '100'
           }, fragment: null);
     }
 
@@ -148,32 +144,15 @@ class ZmClient {
     }
     var resp = await req.close();
 
-    bool foundStart = false;
-    var list = new Uint8Buffer();
-
     try {
+      var buff = new Uint8Buffer();
+
       await for (var data in resp) {
-        var lastByte = null;
-        var lenSub1 = data.length - 1;
+        buff.addAll(data);
 
-        for (var i = 0; i < data.length; i++) {
-          var b = data[i];
-
-          if (foundStart) {
-            list.add(b);
-            if (b == jpegEndB && i > 0 && lastByte == jpegEndA) {
-              foundStart = false;
-              yield list.buffer.asByteData();
-              list = new Uint8Buffer();
-            }
-          }
-
-          if (b == jpegStartA && i < lenSub1 && data[i + 1] == jpegStartB) {
-            foundStart = true;
-            list.add(b);
-          }
-
-          lastByte = b;
+        if (buff.length >= 2048) {
+          yield buff.buffer.asByteData();
+          buff = new Uint8Buffer();
         }
       }
     } finally {
