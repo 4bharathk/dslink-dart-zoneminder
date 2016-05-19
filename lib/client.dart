@@ -144,8 +144,8 @@ class ZmClient {
     }
     var resp = await req.close();
 
+    var buff = new Uint8Buffer();
     try {
-      var buff = new Uint8Buffer();
 
       await for (var data in resp) {
         buff.addAll(data);
@@ -161,6 +161,36 @@ class ZmClient {
           hClient.close(force: true);
         }
       } catch (e) {}
+      if (buff.isNotEmpty) yield buff.buffer.asByteData();
+    }
+  }
+
+  /// Retrieve the stream of the recorded event video feed.
+  Stream<ByteData> getEventFeed(Event event) async* {
+    var uri = event.stream;
+
+    var hClient = new HttpClient();
+    var req = await hClient.getUrl(uri);
+    if (_cookies != null && _cookies.isNotEmpty) {
+      req.cookies.addAll(_cookies);
+    }
+
+    var resp = await req.close();
+
+    var buff = new Uint8Buffer();
+    try {
+      await for (var data in resp) {
+        buff.addAll(data);
+
+        if (buff.length >= 2048) {
+          yield buff.buffer.asByteData();
+          buff = new Uint8Buffer();
+        }
+      }
+    } finally {
+      hClient?.close(force: true);
+      print('Buffer: ${buff.length}');
+      if (buff.isNotEmpty) yield buff.buffer.asByteData();
     }
   }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'monitor_node.dart';
+import 'event_node.dart';
 import 'common.dart';
 import '../../models.dart';
 import '../../client.dart';
@@ -22,6 +23,7 @@ class VideoNode extends ZmNode {
   VideoNode(String path) : super(path);
 
   Monitor _monitor;
+  Event _event;
   ZmClient _client;
   String get _strType => getConfig(_feedType);
 
@@ -29,42 +31,56 @@ class VideoNode extends ZmNode {
   void onCreated() {
     _client = getClient();
 
-    (parent as MonitorNode).getMonitor().then((monitor) {
-      _monitor = monitor;
+    if (_strType == liveFeed) {
+      (parent as MonitorNode).getMonitor().then((monitor) {
+        _monitor = monitor;
 
-      if (_strType == liveFeed && callbacks.isNotEmpty) {
-        startLiveFeed();
-      }
-    });
+        if (callbacks.isNotEmpty) {
+          startLiveFeed();
+        }
+      });
+    } else if (_strType == eventFeed) {
+      (parent as EventNode).getEvent().then((event) {
+        _event = event;
+
+        if (callbacks.isNotEmpty) {
+          startLiveFeed();
+        }
+      });
+    }
   }
 
   void startLiveFeed() {
-    if (_monitor == null) {
-      return;
+    print('$_strType');
+    if (_strType == liveFeed) {
+      if (_monitor == null) return;
+      _sub = _client.getMonitorFeed(_monitor).listen(_listener);
+    } else if (_strType == eventFeed) {
+      print('Event: $_event');
+      if (_event == null) return;
+      _sub = _client.getEventFeed(_event).listen(_listener);
     }
+  }
 
-    _sub = _client.getMonitorFeed(_monitor).listen((bd) {
-      updateValue(bd, force: true);
-    });
+  void _listener(bd) {
+    updateValue(bd, force: true);
   }
 
   void stopLiveFeed() {
-    if (_sub != null) {
-      _sub.cancel();
-      _sub = null;
-    }
+    _sub?.cancel();
+    _sub = null;
   }
 
   @override
   void onSubscribe() {
-    if (_strType == liveFeed) {
+    if (_strType == liveFeed || _strType == eventFeed) {
       startLiveFeed();
     }
   }
 
   @override
   void onUnsubscribe() {
-    if (_strType == liveFeed) {
+    if (_strType == liveFeed || _strType == eventFeed) {
       stopLiveFeed();
     }
   }

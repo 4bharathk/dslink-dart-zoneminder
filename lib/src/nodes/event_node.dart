@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'common.dart';
 import '../../models.dart';
+import 'video_node.dart';
 
 class GetEventsNode extends ZmParent {
   static const String isType = 'getEventsNode';
@@ -91,7 +92,7 @@ class DeleteEvent extends ZmParent {
   Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {
     var ret = { _success: false, _message : '' };
 
-    var event = (parent as EventNode).event;
+    var event = (parent as EventNode)._event;
     var client = getClient();
     ret[_success] = await client.deleteEvent(event);
     ret[_message] = (ret[_success] ? 'Success!': 'Unable to delete event');
@@ -126,7 +127,8 @@ class EventNode extends ZmNode {
       'avgScore': ZmValue.definition('Average Score', 'number', event.avgScore),
       'maxScore': ZmValue.definition('Max Score', 'number', event.maxScore)
     },
-    'stream': ZmValue.definition('Stream', 'string', event.stream.toString()),
+    'streamUrl': ZmValue.definition('Stream URL', 'string', event.stream.toString()),
+    'stream': VideoNode.definition(VideoNode.eventFeed),
     'notes': ZmValue.definition('Notes', 'string', event.notes, write: true),
     'Frames': {
        GetFrames.pathName: GetFrames.definition(event.id)
@@ -134,30 +136,39 @@ class EventNode extends ZmNode {
     DeleteEvent.pathName: DeleteEvent.definition()
   };
 
-  Event event;
+  Event _event;
+  Completer<Event> _eventComp;
+  Future<Event> getEvent() => _eventComp.future;
 
-  EventNode(String path) : super(path);
+  void set event(Event e) {
+    _event = e;
+    _eventComp.complete(_event);
+  }
+
+  EventNode(String path) : super(path) {
+    _eventComp = new Completer<Event>();
+  }
 
   bool onSetChild(value, ZmValue node) {
     var client = getClient();
     var oldValue = node.value;
     if (node.name == 'name') {
-      client.setEventDetails(event, 'Name', value).then((success) {
+      client.setEventDetails(_event, 'Name', value).then((success) {
         if (success) return;
         node.updateValue(oldValue);
         this.displayName = oldValue;
-        event.name = oldValue;
+        _event.name = oldValue;
       });
-      event.name = value;
+      _event.name = value;
       this.displayName = value;
       return false;
     } else if (node.name == 'notes') {
-      client.setEventDetails(event, 'Notes', value).then((success) {
+      client.setEventDetails(_event, 'Notes', value).then((success) {
         if (success) return;
         node.updateValue(oldValue);
-        event.notes = oldValue;
+        _event.notes = oldValue;
       });
-      event.notes = value;
+      _event.notes = value;
       return false;
     }
     return true;
