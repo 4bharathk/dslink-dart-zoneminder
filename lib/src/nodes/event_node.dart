@@ -224,7 +224,9 @@ class GetFrames extends ZmParent {
 
       var pPath = parent.path;
       for (var frame in result.frames) {
-        provider.addNode('$pPath/${frame.id}', FrameNode.definition(frame));
+        var nd =
+            provider.addNode('$pPath/${frame.id}', FrameNode.definition(frame));
+        (nd as FrameNode).frame = frame;
       }
     }
 
@@ -244,12 +246,53 @@ class FrameNode extends ZmNode {
     'timeStamp': ZmValue.definition('TimeStamp', 'string', frame.timestamp),
     'delta': ZmValue.definition('Delta', 'number', frame.delta),
     'score': ZmValue.definition('Score', 'number', frame.score),
-    'uri': ZmValue.definition('Url', 'string', frame.imageUri.toString())
+    'uri': ZmValue.definition('Url', 'string', frame.imageUri.toString()),
+    'data': FrameData.definition()
   };
 
-  FrameNode(String path): super(path);
+  Frame _frame;
+  Completer<Frame> _frameComp;
+  Future<Frame> getFrame() => _frameComp.future;
+  void set frame(Frame f) {
+    _frame = f;
+    _frameComp.complete(_frame);
+  }
+
+  FrameNode(String path): super(path) {
+    _frameComp = new Completer<Frame>();
+  }
 
   bool onSetChild(value, ZmValue node) {
     return true;
   }
+}
+
+class FrameData extends ZmNode {
+  static const String isType = 'frameDataNode';
+
+  static Map<String, dynamic> definition() => {
+    r'$is': isType,
+    r'$name': 'Binary Data',
+    r'$type': 'binary',
+    r'?value': null
+  };
+
+  FrameData(String path) : super(path);
+
+  bool onSetChild(value, ZmValue node) => true;
+
+  @override
+  void onSubscribe() {
+    print('Subscribed: Value: $value');
+    if (value != null) return;
+
+    var client = getClient();
+    (parent as FrameNode).getFrame().then((frame) {
+      return client.getImageData(frame);
+    }).then((bd) {
+      print('Received data');
+      updateValue(bd, force: true);
+    });
+  }
+
 }

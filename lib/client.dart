@@ -261,6 +261,28 @@ class ZmClient {
     return true;
   }
 
+  Future<ByteData> getImageData(Frame frame) async {
+    var uri = frame.imageUri;
+
+    var hClient = new HttpClient();
+    var req = await hClient.getUrl(uri);
+    if (_cookies != null && _cookies.isNotEmpty) {
+      req.cookies.addAll(_cookies);
+    }
+    var resp = await req.close();
+
+    var buff = new Uint8Buffer();
+    try {
+      await for (var data in resp) {
+        buff.addAll(data);
+      }
+    } finally {
+      hClient?.close(force: true);
+    }
+
+    return buff.buffer.asByteData();
+  }
+
   Future<Host> getHostDetails() async {
     var host = new Host();
     var futs = new List<Future>();
