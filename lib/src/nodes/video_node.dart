@@ -6,6 +6,8 @@ import 'common.dart';
 import '../../models.dart';
 import '../../client.dart';
 
+import 'package:crypto/crypto.dart';
+
 class VideoNode extends ZmNode {
   static const String liveFeed = 'liveFeed';
   static const String eventFeed = 'eventFeed';
@@ -51,7 +53,6 @@ class VideoNode extends ZmNode {
   }
 
   void startLiveFeed() {
-    print('$_strType');
     if (_strType == liveFeed) {
       if (_monitor == null) return;
       _sub = _client.getMonitorFeed(_monitor).listen(_listener);
@@ -89,3 +90,6 @@ class VideoNode extends ZmNode {
 
   bool onSetChild(value, ZmValue node) => true;
 }
+
+Set<String> hashes = new Set<String>();
+List<String> hashList = new List<String>();

@@ -89,7 +89,7 @@ class ZmClient {
             queryParameters: {
               'monitor' : '${mon.id}',
               'user': _username,
-              'maxfps': '20',
+              'maxfps': '60',
               'scale': '100'
             });
         list.add(mon);
@@ -139,29 +139,61 @@ class ZmClient {
 
     var hClient = new HttpClient();
     var req = await hClient.getUrl(uri);
+    req.headers.removeAll(HttpHeaders.ACCEPT_ENCODING);
     if (_cookies != null && _cookies.isNotEmpty) {
       req.cookies.addAll(_cookies);
     }
     var resp = await req.close();
+    Socket socket;
 
     var buff = new Uint8Buffer();
     try {
+      var isInside = false;
+      socket = await resp.detachSocket();
+      await for (var data in socket) {
+        var len = data.length;
+        for (var i = 0; i < len; i++) {
+          var b = data[i];
 
-      await for (var data in resp) {
-        buff.addAll(data);
+          if (isInside) {
+            if (b == 0xff && (i + 1 < len)) {
+              var nb = data[i + 1];
+              if (nb == 0xd9) {
+                isInside = false;
+                buff.add(0xff);
+                buff.add(0xd9);
+                var byteData = buff.buffer
+                  .asByteData(buff.offsetInBytes, buff.lengthInBytes);
+                buff = new Uint8Buffer();
+                yield byteData;
+              } else {
+                buff.add(b);
+              }
+            } else {
+              buff.add(b);
+            }
+          }
 
-        if (buff.length >= 2048) {
-          yield buff.buffer.asByteData();
-          buff = new Uint8Buffer();
+          if (b == 0xff && i + 1 < len) {
+            var nb = data[i + 1];
+            if (nb == 0xd8) {
+              buff.add(b);
+              isInside = true;
+            }
+          }
         }
       }
     } finally {
       try {
+        if (socket != null) {
+          socket.destroy();
+          socket.close();
+        }
+
         if (hClient != null) {
           hClient.close(force: true);
         }
       } catch (e) {}
-      if (buff.isNotEmpty) yield buff.buffer.asByteData();
     }
   }
 
