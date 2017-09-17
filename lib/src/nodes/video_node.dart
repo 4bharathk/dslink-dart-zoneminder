@@ -6,8 +6,6 @@ import 'common.dart';
 import '../../models.dart';
 import '../../client.dart';
 
-import 'package:crypto/crypto.dart';
-
 class VideoNode extends ZmNode {
   static const String liveFeed = 'liveFeed';
   static const String eventFeed = 'eventFeed';

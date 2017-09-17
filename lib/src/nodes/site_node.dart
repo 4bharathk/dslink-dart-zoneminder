@@ -234,7 +234,8 @@ class SiteNode extends SimpleNode {
     'monitors': {},
     EditSiteNode.pathName: EditSiteNode.definition(uri, user, pass),
     RemoveSiteNode.pathName: RemoveSiteNode.definition(),
-    RestartZm.pathName: RestartZm.definition()
+    RestartZm.pathName: RestartZm.definition(),
+    RefreshMonitors.pathName: RefreshMonitors.definition()
   };
 
   static const Duration _duration = const Duration(seconds: 10);
@@ -245,6 +246,13 @@ class SiteNode extends SimpleNode {
 
   @override
   onCreated() async {
+    if (!provider.hasNode('$path/${RefreshMonitors.pathName}')) {
+      provider.addNode(
+        '$path/${RefreshMonitors.pathName}',
+        RefreshMonitors.definition()
+      );
+    }
+
     Uri uri;
     var url = getConfig(_url);
     var user = getConfig(_user);
@@ -262,13 +270,7 @@ class SiteNode extends SimpleNode {
       return;
     }
 
-    var monitors = await client.listMonitors();
-    if (monitors == null) return;
-    for (var monitor in monitors) {
-      var nd = provider.addNode('$path/monitors/${monitor.id}',
-          MonitorNode.definition(monitor));
-      (nd as MonitorNode).monitor = monitor;
-    }
+    await refreshMonitors();
 
     client.getHostDetails().then((host) {
       updateHost(host);
@@ -327,6 +329,17 @@ class SiteNode extends SimpleNode {
     });
   }
 
+  refreshMonitors() async {
+    var monitors = await client.listMonitors();
+    if (monitors == null) return;
+    for (var monitor in monitors) {
+      if (!provider.hasNode('$path/monitors/${monitor.id}')) {
+        var nd = provider.addNode('$path/monitors/${monitor.id}',
+            MonitorNode.definition(monitor));
+        (nd as MonitorNode).monitor = monitor;
+      }
+    }
+  }
 }
 
 class RestartZm extends ZmParent {
@@ -357,6 +370,35 @@ class RestartZm extends ZmParent {
     ret[_success] = await client.restartDaemon();
     ret[_message] =
         (ret[_success] ? 'Success!' : 'Unable to restart ZoneMinder.');
+    return ret;
+  }
+}
+
+class RefreshMonitors extends ZmParent {
+  static const String isType = 'refreshMonitorsNode';
+  static const String pathName = 'Refresh_Monitors';
+
+  static const String _success = 'success';
+  static const String _message = 'message';
+
+  static Map<String, dynamic> definition() => {
+    r'$is' : isType,
+    r'$name' : 'Refresh Monitors',
+    r'$invokable' : 'write',
+    r'$params' : [],
+    r'$columns' : [
+      { 'name' : _success, 'type' : 'bool', 'default' : false },
+      { 'name' : _message, 'type' : 'string', 'default': '' }
+    ]
+  };
+
+  RefreshMonitors(String path) : super(path);
+
+  @override
+  Future<Map<String, dynamic>> onInvoke(Map<String, dynamic> params) async {
+    var ret = { _success: true, _message : 'Success!' };
+
+    await getSite()?.refreshMonitors();
     return ret;
   }
 }
