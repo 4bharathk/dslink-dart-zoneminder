@@ -333,9 +333,11 @@ class SiteNode extends SimpleNode {
     var monitors = await client.listMonitors();
     if (monitors == null) return;
     for (var monitor in monitors) {
-      if (!provider.hasNode('$path/monitors/${monitor.id}')) {
-        var nd = provider.addNode('$path/monitors/${monitor.id}',
-            MonitorNode.definition(monitor));
+      if (provider.getNode('$path/monitors/${monitor.id}') == null) {
+        var nd = provider.addNode(
+          '$path/monitors/${monitor.id}',
+          MonitorNode.definition(monitor)
+        );
         (nd as MonitorNode).monitor = monitor;
       }
     }
