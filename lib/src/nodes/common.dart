@@ -12,12 +12,16 @@ abstract class ZmParent extends SimpleNode {
   }
 
   ZmClient getClient() {
+    return getSite()?.client;
+  }
+
+  SiteNode getSite() {
     var p = parent;
     while (p is! SiteNode && p != null) {
       p = p.parent;
     }
 
-    return (p as SiteNode)?.client;
+    return p as SiteNode;
   }
 }
 
