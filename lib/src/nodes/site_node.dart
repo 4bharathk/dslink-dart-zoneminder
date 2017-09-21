@@ -245,12 +245,18 @@ class SiteNode extends SimpleNode {
   Timer timer;
 
   @override
-  onCreated() async {
+  void onCreated() {
     if (!provider.hasNode('$path/${RefreshMonitors.pathName}')) {
       provider.addNode(
         '$path/${RefreshMonitors.pathName}',
         RefreshMonitors.definition()
       );
+    }
+
+    if (!provider.hasNode('$path/monitors')) {
+      provider.addNode('$path/monitors', {
+        r"$is": "node"
+      });
     }
 
     Uri uri;
@@ -264,20 +270,23 @@ class SiteNode extends SimpleNode {
     }
 
     client = new ZmClient(uri, user, pass);
-    var auth = await client.authenticate();
-    if (!auth) {
-      logger.warning('Unable to authenticate');
-      return;
-    }
 
-    await refreshMonitors();
+    new Future(() async {
+      var auth = await client.authenticate();
+      if (!auth) {
+        logger.warning('Unable to authenticate');
+        return;
+      }
 
-    client.getHostDetails().then((host) {
-      updateHost(host);
-      if (timer != null) return;
+      await refreshMonitors();
 
-      timer = new Timer.periodic(_duration, (_) async {
-        updateHost(await client.getHostDetails());
+      client.getHostDetails().then((host) {
+        updateHost(host);
+        if (timer != null) return;
+
+        timer = new Timer.periodic(_duration, (_) async {
+          updateHost(await client.getHostDetails());
+        });
       });
     });
   }
@@ -332,14 +341,18 @@ class SiteNode extends SimpleNode {
   refreshMonitors() async {
     var monitors = await client.listMonitors();
     if (monitors == null) return;
+    var monitorsNode = provider.getNode('$path/monitors');
     for (var monitor in monitors) {
-      if (provider.getNode('$path/monitors/${monitor.id}') == null) {
-        var nd = provider.addNode(
-          '$path/monitors/${monitor.id}',
-          MonitorNode.definition(monitor)
-        );
-        (nd as MonitorNode).monitor = monitor;
+      if (monitorsNode != null &&
+        monitorsNode.children.containsKey(monitor.id)) {
+        continue;
       }
+
+      var nd = provider.addNode(
+        '${path}/monitors/${monitor.id}',
+        MonitorNode.definition(monitor)
+      );
+      (nd as MonitorNode).monitor = monitor;
     }
   }
 }
